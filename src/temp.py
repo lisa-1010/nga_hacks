@@ -14,6 +14,9 @@ from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
+saver = None
+sess = None
+
 np.random.seed(1234)
 tf.set_random_seed(0)
 
@@ -144,7 +147,21 @@ def evaluate(print_grid=False):
 
 
 
+def init_model(model_path):
+    global saver
+    global sess
+    saver = tf.train.Saver()
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    saver.restore(sess, model_path)
+
+
+def close_session():
+    global sess
+    sess.close()
+
 def extrapolate(history_file, etc_dict=None):
+    global saver
+    global sess
     # etc_dict is a dict mapping from province to # of new ETCs there
     with tf.device('/gpu:0'):  # run on specific device
         input_tensor, pred, gt = models.import_model(num_timesteps,
