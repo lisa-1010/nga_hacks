@@ -216,18 +216,15 @@ def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DA
         data.append(np.array(sample_across_timesteps))
         labels.append(int(rows[i + num_timesteps][3]))
 
-    dataset = data, labels, provinces
-
-
+    dataset = data, provinces
 
     np.save("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy", dataset)
     print ("finished processing data for extrapolation.")
 
-    data, labels, provinces = np.load("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy")
+    data, provinces = np.load("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy")
 
-    print data
-    print labels
-    print provinces
+    print data[0]
+    print provinces[0]
 
 
 
