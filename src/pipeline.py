@@ -38,7 +38,7 @@ else:
 if args.save_frequency:
     save_frequency = args.save_frequency
 else:
-    save_frequency = 15
+    save_frequency = 10
 if args.model_path:
     model_path = args.model_path
 else:
@@ -133,7 +133,7 @@ def evaluate(print_grid=False):
         rmse = []
         for i in range(len(all_pred)):
             if all_pred[i] == all_gt[i]: num_align += 1
-            rmse.append(np.sqrt(np.pow((all_pred[i] - all_gt[i]), 2)))
+            rmse.append(np.sqrt(np.power((all_pred[i] - all_gt[i]), 2)))
         print "Accuracy:", float(num_align)/len(all_pred)
         print "Avg. RMSE", np.mean(rmse)
         print "Variance RMSE", np.var(rmse)
