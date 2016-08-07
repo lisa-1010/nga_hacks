@@ -1,7 +1,42 @@
-var localites = ['dalaba', 'dabola', 'siguiri', 'kankan', 'nzerekore', 'yomou', 'dubreka', 'dinguiraye', 'lola', 'gueckedou', 'boke', 'kerouane', 'kindia', 'telimele', 'forecariah', 'coyah', 'kouroussa', 'beyla', 'boffa', 'kissidougou', 'mamou', 'faranah', 'macenta', 'pita', 'conakry'];
+var initialData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+var keys = ['beyla',
+'boffa',
+'boke',
+'conakry',
+'coyah',
+'dabola',
+'dalaba',
+'dinguiraye',
+'dubreka',
+'faranah',
+'forecariah',
+'fria',
+'gaoual',
+'gueckedou',
+'kankan',
+'kerouane',
+'kindia',
+'kissidougou',
+'koubia',
+'koundara',
+'kouroussa',
+'labe',
+'lelouma',
+'lola',
+'macenta',
+'mali',
+'mamou',
+'mandiana',
+'nzerekore',
+'pita',
+'siguiri',
+'telimele',
+'tougue',
+'yomou'];
 
 $(function () {
-  function createChart($chart, enabled) {
+  function createChart($chart, enabled, etc0, etc1) {
     $chart.highcharts({
       chart: {
         backgroundColor: '#fcfcfc',
@@ -42,10 +77,10 @@ $(function () {
       },
       series: [{
         name: 'ETC-0',
-        data: [1, 0, 4, 8, 5, 6, 8, 7, 9, 12, 14, 15, 16, 15, 16, 17]
+        data: etc0
       }, {
         name: 'ETC-N',
-        data: [2, 1, 3, 4, 7, 6, 5, 6, 9, 10, 12, 13, 15, 14, 17, 18]
+        data: etc1
       }],
       credits: {
           enabled: false
@@ -56,7 +91,7 @@ $(function () {
     });
   }
 
-  createChart($('#outbreak-effect'), true);
+  createChart($('#outbreak-effect'), true, initialData, initialData);
   
   var charts = []
   $('#treatment-centers').find('div').each(function(i, row) {
@@ -66,20 +101,44 @@ $(function () {
   });
 
   charts.forEach(function($chart, i) {
-    createChart($chart, false)
+    createChart($chart, false, initialData, initialData);
   });
 
   (function() {
-    $.get('/api/charts', {"macenta": 2, "coyah": 1, "kerouane": 1}, function(response, status) {
-      /// TODO - status code
-      for (localite in response) {
-        var data = parseStringArray(response[localite]);
-        console.log(data);
+    $.ajax({
+      contentType: 'application/json',
+      data: JSON.stringify({'macenta': 2, 'coyah': 1, 'kerouane': 1}),
+      dataType: 'json',
+      type: 'POST',
+      url: '/api/charts',
+      success: function(response, status) {
+        for (var name in response) {
+          var index = getIndex(name);
+          console.log(name + " " + index);
+
+          var etc0 = stringToFloatArray(response[name][0]);
+          var etc1 = stringToFloatArray(response[name][1]);
+          console.log(etc0);
+          console.log(etc1);
+
+          var $chart = $('[data-highcharts-chart=' + index + ']');
+          createChart($chart, false, etc0, etc1);
+        }
+      },
+      error: function() {
+          app.log("Device control failed");
       }
-    }, 'json');
+    });
   })();
 
-  function parseStringArray(string) {
-    return string.map(parseFloat);
+  function getIndex(name) {
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] === name) return i + 1;
+    }
+    return -1;
+  }
+
+  function stringToFloatArray(stringArray) {
+    return stringArray.map(parseFloat);
   }
 });
