@@ -28,10 +28,10 @@ CLEAN_ALL_THREE_COUNTRIES_DATA_PATH = "../data/all_three_countries_clean.csv"
 
 LAT_LON_PROVINCES = "../data/lat-lon-provinces.csv"
 
-PREPROCESSED_GUINEA_DATA = "../data/preprocessed/guinea_25.npy"
+PREPROCESSED_GUINEA_DATA = "/Users/lisa1010/dev/nga_hacks/flask/data/preprocessed/guinea_25.npy"
 PREPROCESSED_DATA = "../data/preprocessed.npy"
 
-PREPROCESSED_GUINEA_DATA_EXTRA = "../data/preprocessed/guinea_25_for_extrapolation.npy"
+PREPROCESSED_GUINEA_DATA_EXTRA = "/Users/lisa1010/dev/nga_hacks/flask/data/preprocessed/guinea_25_for_extrapolation.npy"
 
 COUNTRIES = ["guinea", "liberia", "sierra", "all_three_countries"]
 
