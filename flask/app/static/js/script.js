@@ -1,6 +1,7 @@
 var colors = ['#ffffff', '#ffffe0','#ffd4ad','#ffa77a','#ff7246','#ff0000'];
 var numPrefectures = 34;
 
+var populationRanges = ['<150000', '150000-200000', '200000-275000', '275000-295000', '295000-350000', '>350000']
 var population = {'Beyla': 26,
 'Boffa': 13,
 'Boke': 31,
@@ -56,7 +57,7 @@ $(document).ready(function() {
 function getGradientHTML() {
   var html = '';
   for (var i = 0; i < colors.length; i++) {
-    html += '<div style="width: 16.6667%; height: 100%; background: ' + colors[i] + ';"></div>';
+    html += '<td bgcolor="' + colors[i] + '">&nbsp;' + populationRanges[i] + '&nbsp;</td>';
   }
   return html;
 }
