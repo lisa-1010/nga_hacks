@@ -103,7 +103,8 @@ def remove_invalid_provinces(country_file, provinces_file):
                 row[1] = 'port loko'
 
             if row[1] in valid_provinces:
-                new_rows.append(row)
+                new_rows.append(row[:-2])
+
             else:
                 excluded_provinces.add(row[1])
                 # print 'exluding province {}'.format(row[1])
@@ -135,8 +136,8 @@ if __name__ == "__main__":
 
 
 
-    # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
-    #     print country
-    #     remove_invalid_provinces(country_file, LAT_LON_PROVINCES)
+    for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
+        print country
+        remove_invalid_provinces(country_file, LAT_LON_PROVINCES)
 
     remove_invalid_provinces(ALL_THREE_COUNTRIES_DATA_PATH, LAT_LON_PROVINCES)
