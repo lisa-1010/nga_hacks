@@ -42,7 +42,7 @@ $(document).ready(function() {
 
   function colorProvince($province, id) {
     var index = state[id]['numTreatmentCenters'];
-    $province.attr('fill', colors[(index + 1) % colors.length]);
+    $province.attr('fill', colors[(index) % colors.length]);
   }
 
   function createRow($province) {
@@ -77,12 +77,9 @@ $(document).ready(function() {
       state[id]['numTreatmentCenters'] = (state[id]['numTreatmentCenters'] + 1) % colors.length;
 
       colorProvince($province, id);
-
-      var $elem = $('#t-' + id);
-      console.log($elem);
-      var scrollPosition = $elem.position().top;
-      $('#treatment-centers').animate({scrollTop: scrollPosition});
-
+      console.log('#t-' + id);
+      var elem = document.getElementById('t-' + id);
+      $(elem).find('.C').html(state[id]['numTreatmentCenters']);
     });
 
     // Creates the Treatment Center element in table
