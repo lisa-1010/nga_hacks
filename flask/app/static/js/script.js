@@ -77,9 +77,14 @@ $(document).ready(function() {
       state[id]['numTreatmentCenters'] = (state[id]['numTreatmentCenters'] + 1) % colors.length;
 
       colorProvince($province, id);
-      console.log('#t-' + id);
+      
       var elem = document.getElementById('t-' + id);
-      $(elem).find('.C').html(state[id]['numTreatmentCenters']);
+      var $elem = $(elem); // I'm too lazy to remove the "." from the id to make it compatible with JQuery
+      $elem.find('.C').html(state[id]['numTreatmentCenters']);
+      console.log($elem.offset().top);
+      $('sidebar-left').animate({
+        scrollTop: $elem.offset().top
+      }, 2000);
     });
 
     // Creates the Treatment Center element in table
