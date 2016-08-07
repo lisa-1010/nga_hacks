@@ -221,21 +221,10 @@ def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DA
     np.save("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy", dataset)
     print ("finished processing data for extrapolation.")
 
-    data, provinces = np.load("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy")
-
-    print data[0]
-    print provinces[0]
-
-
-
-
-
-
-
-
-# def create_data_with_one_row_per_province_aligned_in_time(csv_file, raw_data_dict, num_timesteps=25, case_type='confirmed cases'):
-#     raw_data_dict, num_timesteps, provinces_latlon, mean_lat, mean_lon, scale_lat, scale_lon = \
-#         extract_data_from_csv(csv_file, provinces_latlon, num_timesteps=num_timesteps, case_type=case_type)
+    # data, provinces = np.load("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy")
+    #
+    # print data[0]
+    # print provinces[0]
 
 
 if __name__ == "__main__":
