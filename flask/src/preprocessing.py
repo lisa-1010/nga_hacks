@@ -18,6 +18,7 @@ import csv
 import numpy as np
 import sys
 import copy
+import pickle
 
 from sklearn.cross_validation import train_test_split
 
@@ -165,7 +166,7 @@ def find_first_and_last_shared_days(data_dict_by_province):
     last_shared_day = sys.maxint
     for province, rows in data_dict_by_province.iteritems():
         first_day, last_day = find_first_and_last_entry(rows)
-        print "Province: {} \t first day: {} \t last day: {}".format(province, first_day, last_day)
+        # print "Province: {} \t first day: {} \t last day: {}".format(province, first_day, last_day)
         first_shared_day = max(first_shared_day, first_day)
         last_shared_day = min(last_shared_day, last_day)
     return first_shared_day, last_shared_day
@@ -198,7 +199,7 @@ def load_clean_data_dict_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, 
         rows = sort_rows_by_date(rows)
         first_day, last_day = find_first_and_last_entry(rows)
         if first_day > 250: # empirically determined constant
-            print "first day too late. Skipping province {}".format(province)
+            # print "first day too late. Skipping province {}".format(province)
             continue
         for row in rows:
             row[3] = int(row[3])  # num cases
@@ -209,7 +210,7 @@ def load_clean_data_dict_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, 
 
     first_shared_day, last_shared_day = find_first_and_last_shared_days(new_data_dict_by_province)
 
-    print ("total time range: {} days, first shared day: {}, last shared day: {}".format(last_shared_day - first_shared_day, first_shared_day, last_shared_day))
+    # print ("total time range: {} days, first shared day: {}, last shared day: {}".format(last_shared_day - first_shared_day, first_shared_day, last_shared_day))
 
     final_data_dict_by_province_with_sorted_rows = defaultdict(list)
 
@@ -273,6 +274,17 @@ def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DA
     print ("finished processing data for extrapolation.")
 
 
+def save_rel_lat_lon_map(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea"):
+    lat_lon_map = {}
+    data_dict = load_clean_data_dict_aligned_by_time(clean_csv_file=clean_csv_file, dataset_name=dataset_name)
+    for province, rows in data_dict.iteritems():
+        lat_lon_map[province] = (rows[0][5], rows[0][6])
+    pickle.dump(lat_lon_map, open('../data/lat_lon_map_' + dataset_name + '.pickle', 'wb'))
+
+def get_lat_lon_map(dataset_name="guinea"):
+    lat_lon_map = pickle.load(open('../data/lat_lon_map_' + dataset_name + '.pickle', 'rb'))
+    return lat_lon_map
+
 if __name__ == "__main__":
     # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
     #     clean_data_convert_dates_make_normalize_lat_lon(country_file, country)
@@ -283,15 +295,16 @@ if __name__ == "__main__":
 
     # create_data_for_extrapolation_aligned_by_time()
 
-    data_dict = load_clean_data_dict_aligned_by_time()
-    # print data_dict.iteritems()
-    # print data_dict.items()[0]
-    provinces = data_dict.keys()
+    # data_dict = load_clean_data_dict_aligned_by_time()
+    # provinces = data_dict.keys()
     # print provinces
-    for province,rows in data_dict.iteritems():
-        print len(rows)
 
     # print ("number of provinces: {}".format(len(data_dict.keys())))
     # print ('number of rows for this province: {}'.format(len(data_dict.items()[0])))
     #
-    #
+
+    save_rel_lat_lon_map()
+
+    lat_lon_map = pickle.load(open('../data/at_lon_map_guinea.pickle', 'rb'))
+
+    print lat_lon_map
