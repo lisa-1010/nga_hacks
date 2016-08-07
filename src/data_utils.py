@@ -1,3 +1,18 @@
+# data_utils.py
+# @author: Lisa Wang
+# @created: August 6, 2016
+#
+#===============================================================================
+# DESCRIPTION:
+#
+# Collection of functions for data cleaning and exploration.
+#
+#===============================================================================
+# CURRENT STATUS: Working
+#===============================================================================
+# USAGE: python data_utils.py
+#===============================================================================
+
 import csv
 import numpy as np
 from collections import Counter
@@ -102,7 +117,7 @@ def remove_invalid_provinces(country_file, provinces_file):
             elif row[1] == 'port':
                 row[1] = 'port loko'
 
-            if row[1] in valid_provinces:
+            if row[1] in valid_provinces and len(row) == 5:
                 new_rows.append(row[:-2])
 
             else:
@@ -115,6 +130,11 @@ def remove_invalid_provinces(country_file, provinces_file):
         writer = csv.writer(f, delimiter=',')
         for row in new_rows:
             writer.writerow(row)
+
+
+    def load_data_rnn():
+        return np.load(PREPROCESSED_DATA)
+
 
 
 if __name__ == "__main__":
@@ -135,9 +155,9 @@ if __name__ == "__main__":
     # pp.pprint( count_num_provinces(ALL_THREE_COUNTRIES_DATA_PATH))
 
 
-
-    for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
-        print country
-        remove_invalid_provinces(country_file, LAT_LON_PROVINCES)
-
-    remove_invalid_provinces(ALL_THREE_COUNTRIES_DATA_PATH, LAT_LON_PROVINCES)
+    #
+    # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
+    #     print country
+    #     remove_invalid_provinces(country_file, LAT_LON_PROVINCES)
+    #
+    # remove_invalid_provinces(ALL_THREE_COUNTRIES_DATA_PATH, LAT_LON_PROVINCES)

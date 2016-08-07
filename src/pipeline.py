@@ -45,6 +45,8 @@ else:
     model_path = 'trial/checkpoints/model.ckpt-600'
 
 def get_loss(pred, gt):
+    print "Hi"
+    print pred.get_shape(), gt.get_shape()
     return tf.div(tf.sqrt(tf.reduce_mean(tf.square(tf.sub(gt, pred)))),
                   tf.constant(float(batch_size)))
 
@@ -82,9 +84,10 @@ def train():
             for i in range(updates_per_epoch):
                 pbar.update(i)
                 input_batch, gt_batch = dataset.next_batch(batch_size)
+                import pdb; pdb.set_trace()
                 _, loss_value = sess.run([train, loss], 
                                          {input_tensor : input_batch,
-                                          gt : gt_batch})
+                                          gt : [gt_batch]})
                 training_loss += np.sum(loss_value)
 
             training_loss = training_loss/(updates_per_epoch)
@@ -101,7 +104,7 @@ def train():
                 # save summaries
                 summary_str = sess.run(merged, 
                               feed_dict={input_tensor : input_batch,
-                                         gt : gt_batch,
+                                         gt : [gt_batch],
                                          loss_placeholder: training_loss})
                 writer.add_summary(summary_str, global_step=epoch)
         writer.close()
@@ -124,7 +127,7 @@ def evaluate(print_grid=False):
             input_batch, gt_batch = dataset.next_batch(batch_size)
             pred_value = sess.run([pred], 
                                   {input_tensor : input_batch,
-                                   gt : gt_batch})
+                                   gt : [gt_batch]})
 
             all_pred.append(pred_value)
             all_gt.append(gt_batch)
