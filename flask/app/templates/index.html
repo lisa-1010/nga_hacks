@@ -2,14 +2,13 @@
 <html>
   <head>
     <title>Flask Boilerplate</title>
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
   </head>
   <body>
     <h1>Flask Boilerplate</h1>
-    <div class="guineaMap">
-	    <object data="svg/guinea.svg" type="image/svg+xml">
-		    <img src="svg/guinea.svg"></img>
-	    </object>
+    <!-- <object id="guineaMap" data="svg/guinea.svg" type="image/svg+xml"></object> -->
+    <div class="map">
+    	{% include 'map.html' %}
     </div>
 
     <script type="text/javascript" src="lib/jquery.min.js"></script>
