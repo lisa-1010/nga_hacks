@@ -14,6 +14,9 @@ from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
+saver = None
+sess = None
+
 np.random.seed(1234)
 tf.set_random_seed(0)
 
@@ -53,7 +56,7 @@ def get_loss(pred, gt):
 
 def train():
     with tf.device('/gpu:0'): # run on specific device
-        input_tensor, pred, gt = models.import_model(num_timesteps, 
+        input_tensor, pred, gt = models.import_model(num_timesteps,
                                                      num_feats,
                                                      batch_size)
         loss = get_loss(pred, gt)
@@ -70,7 +73,7 @@ def train():
     merged = tf.merge_all_summaries()
 
     init = tf.initialize_all_variables()
-    
+
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
         writer = tf.train.SummaryWriter(os.path.join(working_directory, 'logs'),
                 sess.graph_def)
@@ -85,14 +88,14 @@ def train():
             for i in range(updates_per_epoch):
                 pbar.update(i)
                 input_batch, gt_batch = dataset.next_batch(batch_size)
-                _, loss_value = sess.run([train, loss], 
+                _, loss_value = sess.run([train, loss],
                                          {input_tensor : input_batch,
                                           gt : [gt_batch]})
                 training_loss += np.sum(loss_value)
 
             training_loss = training_loss/(updates_per_epoch)
             print("Loss %f" % training_loss)
-            
+
             # save model
             if epoch % save_frequency == 0:
                 checkpoints_folder = os.path.join(working_directory, 'checkpoints')
@@ -102,7 +105,7 @@ def train():
                            global_step=epoch)
 
                 # save summaries
-                summary_str = sess.run(merged, 
+                summary_str = sess.run(merged,
                               feed_dict={input_tensor : input_batch,
                                          gt : [gt_batch],
                                          loss_placeholder: training_loss})
@@ -111,21 +114,21 @@ def train():
 
 def evaluate(print_grid=False):
     with tf.device('/gpu:0'): # run on specific device
-        input_tensor, pred, gt = models.import_model(num_timesteps, 
+        input_tensor, pred, gt = models.import_model(num_timesteps,
                                                      num_feats,
                                                      batch_size)
 
     dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
 
-    saver = tf.train.Saver() 
-    
+    saver = tf.train.Saver()
+
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
         saver.restore(sess, model_path)
 
         all_pred, all_gt = [], []
         for i in range(updates_per_epoch):
             input_batch, gt_batch = dataset.next_batch(batch_size)
-            pred_value = sess.run([pred], 
+            pred_value = sess.run([pred],
                                   {input_tensor : input_batch,
                                    gt : [gt_batch]})
 
@@ -144,7 +147,21 @@ def evaluate(print_grid=False):
 
 
 
+def init_model(model_path):
+    global saver
+    global sess
+    saver = tf.train.Saver()
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    saver.restore(sess, model_path)
+
+
+def close_session():
+    global sess
+    sess.close()
+
 def extrapolate(history_file, etc_dict=None):
+    global saver
+    global sess
     # etc_dict is a dict mapping from province to # of new ETCs there
     with tf.device('/gpu:0'):  # run on specific device
         input_tensor, pred, gt = models.import_model(num_timesteps,
