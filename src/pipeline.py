@@ -144,7 +144,7 @@ def evaluate(print_grid=False):
 
 
 
-def extrapolate_with_user_input(history_file, etc_dict):
+def extrapolate(history_file, etc_dict=None):
     # etc_dict is a dict mapping from province to # of new ETCs there
     with tf.device('/gpu:0'):  # run on specific device
         input_tensor, pred, gt = models.import_model(num_timesteps,
@@ -176,7 +176,7 @@ def extrapolate_with_user_input(history_file, etc_dict):
                 extrapolated.append(pred_value)
 
                 new_value = pred_value
-                if province in etc_dict:
+                if etc_dict and province in etc_dict:
                     new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
                     # new_value *= (1 - etc_dict[province] * 0.1)
                 old_value = pred_value
@@ -200,45 +200,6 @@ def extrapolate_with_user_input(history_file, etc_dict):
     # np.save('all_extrapolated', all_extrapolated)
 
 
-
-
-
-
-# def extrapolate(input_file):
-#     with tf.device('/gpu:0'): # run on specific device
-#         input_tensor, pred, gt = models.import_model(num_timesteps,
-#                                                      num_feats,
-#                                                      batch_size)
-#
-#     # dataset should be [num_provinces x (num_timesteps, num_feats)]
-#     data, provinces = np.load(input_file)
-#
-#     saver = tf.train.Saver()
-#
-#     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-#         saver.restore(sess, model_path)
-#
-#         all_extrapolated = defaultdict
-#         for province_data in data:
-#             # for one province
-#             # get lat and lon
-#             lat, lon = province_data[0, 1:]
-#             extrapolated = []
-#             for j in range(num_extrapolate):
-#                 pred_value = sess.run([pred],
-#                                       {input_tensor : province_data})[0][0][0]
-#                 extrapolated.append(pred_value)
-#                 new_sample = np.array([pred_value, lat, lon])
-#                 new_sample = np.reshape(new_sample, (1, -1))
-#                 province_data = province_data[1:, :]
-#                 province_data = np.concatenate((province_data, new_sample), axis=0)
-#                 # make example with [pred_value, lat, lon]
-#                 # remove first element in input batch and add extrapolated
-#         all_extrapolated.append(extrapolated)
-#
-#
-#     np.save('all_extrapolated', all_extrapolated)
-
 if __name__ == "__main__":
     if args.mode == 'train':
         train()
@@ -248,8 +209,8 @@ if __name__ == "__main__":
         extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA)
     elif args.mode == 'etc_user':
         etc_dict = {
-            "macenta" : 2,
+            "macenta"   : 2,
             "coyah" : 1,
             "kerouane" : 1
         }
-        extrapolate_with_user_input(PREPROCESSED_GUINEA_DATA_EXTRA, etc_dict)
+        extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, etc_dict)
