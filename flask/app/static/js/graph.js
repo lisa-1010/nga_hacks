@@ -36,8 +36,8 @@ $(function () {
         enabled: false
     },
     legend: {
-                 enabled: false
-             }
+      enabled: false
+    }
 
   });
 });
