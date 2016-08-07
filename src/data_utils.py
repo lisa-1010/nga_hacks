@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 from collections import Counter
 
 
@@ -11,7 +12,7 @@ def lower_entire_csv(csv_file):
         for row in rows:
             lower_rows.append([w.lower() for w in row])
 
-    with open(CLEAN_DATA_PATH, "wb") as f:
+    with open(csv_file, "wb") as f:
         writer = csv.writer(f,  delimiter=',')
         for row in lower_rows:
             writer.writerow(row)
@@ -42,7 +43,6 @@ def find_case_types(csv_file):
     return case_types_count
 
 
-
 def count_num_provinces(csv_file):
     num_regions = 0
     provinces = set()
@@ -51,6 +51,7 @@ def count_num_provinces(csv_file):
         for row in rows:
             provinces.add(row[1])
     print "number of provinces: {}".format(len(provinces))
+    return provinces
 
 
 def find_number_of_cases_in_each_case_type():
@@ -61,6 +62,19 @@ def find_number_of_cases_in_each_case_type():
         #print len([row for row in rows if (row[0] == "Guinea" and row[2] )
 
 
+def merge_three_countries():
+    all_rows = []
+    for country_file in COUNTRIES_DATA_PATHS:
+        with open(country_file, "rb") as f:
+            rows = csv.reader(f, delimiter=',')
+            for row in rows:
+                all_rows.append(row)
+    with open(ALL_THREE_COUNTRIES_DATA_PATH, "wb") as f:
+        writer = csv.writer(f, delimiter=',')
+        for row in all_rows:
+            writer.writerow(row)
+
+
 if __name__ == "__main__":
     # lower_entire_csv(RAW_DATA_PATH)
     # find_case_types()
@@ -68,7 +82,10 @@ if __name__ == "__main__":
     # filter_by_country(CLEAN_DATA_PATH, LIBERIA_DATA_PATH, country="liberia")
     # filter_by_country(CLEAN_DATA_PATH, SIERRA_DATA_PATH, country="sierra leone")
 
-    for country, country_file in zip(COUNTRIES, [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH]):
-        print country
-        count_num_provinces(country_file)
-        find_case_types(country_file)
+    # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
+    #     print country
+    #     count_num_provinces(country_file)
+    #     find_case_types(country_file)
+
+    # merge_three_countries()
+    lower_entire_csv(LAT_LON_PROVINCES)
