@@ -128,6 +128,6 @@ var localites = ['Conakry',
 'Koutiala',
 'Selingue'];
 
-for (var i = 100; i < 110; i++) {
+for (var i = 0; i < localites; i++) {
 	getCoordinates(localites[i]);
 }
