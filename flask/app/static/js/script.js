@@ -3,6 +3,7 @@ var numPrefectures = 34;
 
 var treatmentRanges = ['0 Centers', '1 Center', '2 Centers', '3 Centers', '4 Centers', '5 Centers'];
 var populationRanges = ['<150000', '150000-200000', '200000-275000', '275000-295000', '295000-350000', '>350000'];
+
 var population = {'Beyla': 26,
 'Boffa': 13,
 'Boke': 31,
@@ -40,7 +41,8 @@ var population = {'Beyla': 26,
 
 $(document).ready(function() {
   var state = {
-    'isPopulationMap': false
+    'isPopulationMap': false,
+    'selectedElement': null
   }
 
   var $treatmentCenters = $('#treatment-centers');
@@ -53,7 +55,7 @@ $(document).ready(function() {
     state[id]['numTreatmentCenters'] = 0;
 
     // Attaches event listeners to the path
-    $province.on('click', function() {
+    $province.click(function() {
       if (state['isPopulationMap']) return;
 
       state[id]['numTreatmentCenters'] = (state[id]['numTreatmentCenters'] + 1) % colors.length;
@@ -64,14 +66,11 @@ $(document).ready(function() {
       var $elem = $(elem); // I'm too lazy to remove the "." from the id to make it compatible with JQuery
       $elem.find('.C').html(state[id]['numTreatmentCenters']);
 
-      // Attempt 1
-      // EPPZScrollTo.scrollVerticalToElementById('t-' + id, 20);
-
-      // Attempt 2
-      // console.log($elem.offset().top);
-      // $('sidebar-left').animate({
-      //   scrollTop: $elem.offset().top
-      // }, 2000);
+      if (state['selectedElement']) {
+        state['selectedElement'].removeClass('selected')
+      }
+      $elem.addClass('selected');
+      state['selectedElement'] = $elem;
     });
 
     // Creates the Treatment Center element in table
@@ -105,7 +104,7 @@ $(document).ready(function() {
     $row.append($col2);
     $row.append($col3);
 
-    return $row
+    return $row;
   }
 
   function getGradientHTML() {
