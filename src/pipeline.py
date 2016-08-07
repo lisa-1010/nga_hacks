@@ -8,6 +8,7 @@ import sys
 import os
 import data_loader
 
+from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
@@ -22,13 +23,12 @@ parser.add_argument('mode', choices=('train', 'eval'), help='train or eval')
 args = parser.parse_args()
 
 # Training Constants
-data_file = ''
 learning_rate = 1e-4
 batch_size = 1
 num_timesteps = 4
 num_feats = 3
 max_epoch = 601
-dataset_size = 
+dataset_size = 3726 
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
 
 if args.working_directory:
@@ -57,7 +57,7 @@ def train():
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
 
-    dataset = data_loader.read_datasets(data_file)
+    dataset = data_loader.read_datasets(PREPROCESSED_DATA)
     saver = tf.train.Saver()  # defaults to saving all variables
 
     # logging the loss function
@@ -112,7 +112,7 @@ def evaluate(print_grid=False):
                                                      num_feats,
                                                      batch_size)
 
-    dataset = data_loader.read_datasets(data_file, dataset_type='test')
+    dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
 
     saver = tf.train.Saver() 
     
