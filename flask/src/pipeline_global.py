@@ -8,6 +8,7 @@ import sys
 import os
 import data_loader
 import pickle
+import numpy as np
 
 from collections import defaultdict
 
@@ -159,6 +160,15 @@ def close_session():
     global _sess
     _sess.close()
 
+
+def get_lat_lon_map(dataset_name="guinea"):
+    lat_lon_map = pickle.load(open('../data/rel_lat_lon_map_' + dataset_name + '.pickle', 'rb'))
+    return lat_lon_map
+
+
+def compute_distance(rel_lat_a, rel_lon_a, rel_lat_b, rel_lon_b):
+    return np.sqrt(np.square (rel_lat_a - rel_lat_b) + np.square(rel_lon_a - rel_lon_b))
+
 def _extrapolate(history_file, etc_dict=None):
     global _saver
     global _sess
@@ -170,7 +180,7 @@ def _extrapolate(history_file, etc_dict=None):
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
     data, provinces = np.load(history_file)
 
-    # lat_lon_map = get_lat_lon_map(dataset_name="guinea")
+    rel_lat_lon_map = get_lat_lon_map(dataset_name="guinea")
 
     all_extrapolated = defaultdict(list)
     all_new_values = defaultdict(list)
@@ -189,13 +199,25 @@ def _extrapolate(history_file, etc_dict=None):
 
             new_value = pred_value
 
-            if etc_dict and province in etc_dict:
-                # new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 2)))
-                new_value *= (1 - etc_dict[province] * 0.1)
+            # if etc_dict and province in etc_dict:
+            #     # new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 2)))
+            #     new_value *= (1 - etc_dict[province] * 0.1)
+
+            # see if hospital is nearby
+            if etc_dict:
+                for etc_province in etc_dict.keys():
+                    etc_lat, etc_lon = rel_lat_lon_map[etc_province]
+                    distance_to_etc = compute_distance(etc_lat, etc_lon, lat, lon)
+                    # print ("distance to etc {}",format(distance_to_etc))
+                    if distance_to_etc < 0.3:
+                        factor = (1 - (etc_dict[etc_province] * 0.1 * min(1, 1/(distance_to_etc * 10))))
+                        new_value *= factor
+                        # print ("hospital nearby, factor {}".format(factor))
+
 
             new_value = max(0, new_value)
             extrapolated.append(new_value)
-            old_value = pred_value
+            # old_value = pred_value
             new_values.append(new_value)
             new_sample = np.array([new_value, lat, lon])
 
