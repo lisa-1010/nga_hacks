@@ -5,12 +5,12 @@ degree_interval = 0.5
 
 def fill_grid(grid, clean_dict, cardinals):
     north, south, east, west = cardinals
-	grid_province_dict = {}
+    grid_province_dict = {}
     for province, rows in clean_dict.iteritems():
         rows = sorted(rows, key=lambda x: (x[4]))  # sort by date
         x = int(np.floor((rows[0][6] - west)/degree_interval))
         y = int(np.floor((rows[0][5] - south)/degree_interval))
-		grid_province_dict[(x, y)] = province
+	grid_province_dict[(x, y)] = province
         for t in range(len(rows)):
             feat = rows[t][4]
             grid[t, x, y, 0] += feat
@@ -27,17 +27,17 @@ def calculate_grid_size(latitudes, longitudes):
     return num_x, num_y, (north, south, east, west)
 
 def get_grid(clean_dict):
-    lats, lons = []
+    lats, lons = [], []
     for province, rows in clean_dict.iteritems():
         lats.append(rows[0][5])
         lons.append(rows[0][6])
     num_x, num_y, cardinals = calculate_grid_size(lats, lons)
-    num_grids = len(clean_dict[clean_dict.keys()[0]]
+    num_grids = len(clean_dict[clean_dict.keys()[0]])
     grid = np.zeros((num_grids, num_x, num_y, 1))
     return fill_grid(grid, clean_dict, cardinals)
 
 def get_data(clean_dict):
-    grid = get_grid(clean_dict)
+    grid, grid_province_dict = get_grid(clean_dict)
     X, y = [], []
     timescale, num_rows, num_cols, num_features = grid.shape
     for t in range(num_timesteps, timescale):
@@ -56,9 +56,13 @@ def get_data(clean_dict):
             if np.sum(grid[:, i, j, 0]) == 0:
                 mask[i, j] = 0
 
-    return X, y, mask 
+    return X, y, mask, grid_province_dict
    
 def preprocess_for_cnn(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea",
                                          num_timesteps=25, case_type="confirmed cases"):
     clean_dict = load_clean_data_dict_aligned_by_time(clean_csv_file, dataset_name, num_timesteps, case_type)
-    X, y, mask = get_data(clean_dict)
+    X, y, mask, grid_province_dict = get_data(clean_dict)
+    import pdb; pdb.set_trace()
+
+if __name__ == '__main__':
+    preprocess_for_cnn()

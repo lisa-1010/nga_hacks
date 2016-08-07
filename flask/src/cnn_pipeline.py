@@ -85,10 +85,11 @@ def train():
             pbar.start()
             for i in range(updates_per_epoch):
                 pbar.update(i)
-                input_batch, gt_batch = dataset.next_batch(batch_size)
+                input_batch, gt_batch, mask_batch = dataset.next_batch(batch_size)
                 _, loss_value = sess.run([train, loss],
                                          {input_tensor : input_batch,
-                                          gt : [gt_batch]})
+                                          gt : gt_batch,
+                                          mask: mask_batch})
                 training_loss += np.sum(loss_value)
 
             training_loss = training_loss/(updates_per_epoch)
@@ -105,16 +106,17 @@ def train():
                 # save summaries
                 summary_str = sess.run(merged,
                               feed_dict={input_tensor : input_batch,
-                                         gt : [gt_batch],
+                                         gt : gt_batch,
+                                         mask : mask_batch,
                                          loss_placeholder: training_loss})
                 writer.add_summary(summary_str, global_step=epoch)
         writer.close()
 
 def evaluate(print_grid=False):
     with tf.device('/gpu:0'): # run on specific device
-        input_tensor, pred, gt = models.import_model(num_timesteps,
-                                                     num_feats,
-                                                     batch_size)
+        input_tensor, pred, gt, mask = models.import_model(num_timesteps,
+                                                           num_feats,
+                                                           batch_size)
 
     dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
 

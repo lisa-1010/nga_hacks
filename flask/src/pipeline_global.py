@@ -157,7 +157,7 @@ def close_session():
     global _sess
     _sess.close()
 
-def extrapolate(history_file, etc_dict=None):
+def _extrapolate(history_file, etc_dict=None):
     global _saver
     global _sess
     global _input_tensor
@@ -180,14 +180,17 @@ def extrapolate(history_file, etc_dict=None):
         for t in range(num_extrapolate):
             pred_value = _sess.run([_pred],
                                   {_input_tensor: province_data})[0][0][0]
-            if pred_value < 0:
-                pred_value = 0
-            extrapolated.append(pred_value)
+
+            # pred_value = max(old_value, pred_value)
 
             new_value = pred_value
+
             if etc_dict and province in etc_dict:
-                new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
-                # new_value *= (1 - etc_dict[province] * 0.1)
+                # new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 2)))
+                new_value *= (1 - etc_dict[province] * 0.1)
+
+            new_value = max(0, new_value)
+            extrapolated.append(new_value)
             old_value = pred_value
             new_values.append(new_value)
             new_sample = np.array([new_value, lat, lon])
@@ -211,6 +214,21 @@ def extrapolate(history_file, etc_dict=None):
     return all_extrapolated
 
 
+def extrapolate(history_file, etc_dict=None):
+    global _saver
+    global _sess
+    global _input_tensor
+    global _pred
+    global _gt
+    without_etcs = _extrapolate(history_file)
+    with_etcs = _extrapolate(history_file, etc_dict=etc_dict)
+
+    both_graphs = {}
+    for province in without_etcs.keys():
+        both_graphs[province] = (without_etcs[province], with_etcs[province])
+    return both_graphs
+
+
 test_dict = {
     "macenta": 2,
     "coyah": 1,
@@ -219,7 +237,10 @@ test_dict = {
 
 def test_those_globals():
     init_model()
-    print extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)["macenta"]
+    graphs_dict = extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)
+    for (province, graphs) in graphs_dict.iteritems():
+        print province
+        print graphs
 
 
 if __name__ == "__main__":
