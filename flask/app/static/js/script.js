@@ -38,33 +38,12 @@ var population = {'Beyla': 26,
 'Yomou': 8};
 
 $(document).ready(function() {
-  var state = {}
-
-  function colorProvince($province, id) {
-    var index = state[id]['numTreatmentCenters'];
-    $province.attr('fill', colors[(index) % colors.length]);
-  }
-
-  function createRow($province) {
-    var $row = $('<div></div>').attr('id', 't-' + $province.attr('id'));
-    
-    var $col1 = $('<div></div>').html($province.attr('data-name')).attr('class', 'A');
-    var $col2 = $('<div></div>').html("B").attr('class', 'B');
-    var $col3 = $('<div></div>').html(state[$province.attr('id')]['numTreatmentCenters']).attr('class', 'C');
-
-
-    // var $col1 = $('<div></div>').html($province.attr('data-name')).attr({class: 'col'});
-    // var $col2 = $('<div></div>').attr({class: 'chart'});
-    // var $col3 = $('<div></div>').html(state[$province.attr('id')]['numTreatmentCenters']).attr({class: 'col'});
-
-    $row.append($col1);
-    $row.append($col2);
-    $row.append($col3);
-
-    return $row
+  var state = {
+    'isPopulationMap': false
   }
 
   var $treatmentCenters = $('#treatment-centers');
+
   $('svg').find('path').each(function(index, province) {
     var $province = $(province);
     var id = $province.attr('id');
@@ -74,9 +53,11 @@ $(document).ready(function() {
 
     // Attaches event listeners to the path
     $province.on('click', function() {
+      if (state['isPopulationMap']) return;
+
       state[id]['numTreatmentCenters'] = (state[id]['numTreatmentCenters'] + 1) % colors.length;
 
-      colorProvince($province, id);
+      colorProvince($province);
       console.log('#t-' + id);
       var elem = document.getElementById('t-' + id);
       $(elem).find('.C').html(state[id]['numTreatmentCenters']);
@@ -89,28 +70,61 @@ $(document).ready(function() {
 
   $('#gradient').html(getGradientHTML());
 
-  $('.population').click(function() {
+  $('.population-button').click(function() {
     createPopulationMap();
   });
-});
 
-function getGradientHTML() {
-  var html = '';
-  for (var i = 0; i < colors.length; i++) {
-    html += '<td bgcolor="' + colors[i] + '">&nbsp;' + populationRanges[i] + '&nbsp;</td>';
-  }
-  return html;
-}
-
-function createPopulationMap() {
-  $('svg').find('path').each(function(index, province) {
-    var name = $(province).attr('data-name');
-    var count = population[name];
-    $(province).attr('fill', getGradientColor(count));
+  $('.treatment-button').click(function() {
+    createTreatmentMap();
   });
-};
 
-function getGradientColor(count) {
-  var intervalSize = numPrefectures / colors.length;
-  return colors[Math.floor((count - 1) / intervalSize)];
-}
+  function colorProvince($province) {
+    var index = state[$province.attr('id')]['numTreatmentCenters'];
+    $province.attr('fill', colors[(index) % colors.length]);
+  }
+
+  function createRow($province) {
+    var $row = $('<div></div>').attr('id', 't-' + $province.attr('id'));
+    
+    var $col1 = $('<div></div>').html($province.attr('data-name')).attr('class', 'A');
+    var $col2 = $('<div></div>').html("B").attr('class', 'B');
+    var $col3 = $('<div></div>').html(state[$province.attr('id')]['numTreatmentCenters']).attr('class', 'C');
+
+    $row.append($col1);
+    $row.append($col2);
+    $row.append($col3);
+
+    return $row
+  }
+
+  function getGradientHTML() {
+    var html = '';
+    for (var i = 0; i < colors.length; i++) {
+      html += '<td bgcolor="' + colors[i] + '">&nbsp;' + populationRanges[i] + '&nbsp;</td>';
+    }
+    return html;
+  }
+
+  function createPopulationMap() {
+    state['isPopulationMap'] = true;
+    $('.page-content svg').find('path').each(function(index, province) {
+      var name = $(province).attr('data-name');
+      var count = population[name];
+      $(province).attr('fill', getGradientColor(count));
+    });
+  };
+
+  function getGradientColor(count) {
+    var intervalSize = numPrefectures / colors.length;
+    return colors[Math.floor((count - 1) / intervalSize)];
+  }
+
+  function createTreatmentMap() {
+    state['isPopulationMap'] = false;
+    $('.page-content svg').find('path').each(function(index, province) {
+      var id = $(province).attr('id');
+      state[id]['numTreatmentCenters'] = 0;
+      $(province).attr('index', colorProvince($(province)));
+    });
+  }
+});
