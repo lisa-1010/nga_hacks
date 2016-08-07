@@ -7,11 +7,16 @@
   <body>
     <h1>Flask Boilerplate</h1>
 
-    <div id="gradient" style="width: 300px; height: 20px"></div>
+    <table>
+      <tr id="gradient"></tr>
+    </table>
 
+    <br>
     <div class="map">
     	{% include 'map.html' %}
     </div>
+
+    <button type="button" class="population">Population Map</button>
 
     <script type="text/javascript" src="lib/jquery.min.js"></script>
     <script type="text/javascript" src="js/script.js"></script>

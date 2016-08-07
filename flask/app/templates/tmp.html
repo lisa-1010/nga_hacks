@@ -10,28 +10,36 @@
       <h1 class="ui header">Emergent</h1>
       <h4 class="ui header">Deep Learning for Treatment Center Deployment</h4>
 
+      <div class="ui divider"></div>
+
       <div class="ui vertical list">
-        <div class="item">
-          <i class="emergency icon"></i>
-          <div class="content">
-            <div class="ui sub header">Treatment Centers</div>
-          </div>
-        </div>
         <div class="item">
           <i class="bar chart icon"></i>
           <div class="content">
             <div class="ui sub header">Outbreak Effect</div>
           </div>
-          <div id="outbreak-effect-chart"></div>
+          <div id="outbreak-effect"></div>
+        </div>
+        <div class="item">
+          <i class="emergency icon"></i>
+          <div class="content">
+            <div class="ui sub header">Treatment Centers</div>
+          </div>
+          <div id="treatment-centers"></div>
         </div>
       </div>
+
     </aside>
     <div class="page-content">
       <div class="map">
         {% include 'map.html' %}
       </div>
+      <button type="button" class="population">Population Map</button>
+      <table>
+        <tr id="gradient"></tr>
+      </table>
     </div>
-  
+
     <script type="text/javascript" src="lib/jquery.min.js"></script>
     <script type="text/javascript" src="lib/semantic/semantic.min.js"></script>
     <script type="text/javascript" src="lib/highcharts.js"></script>
