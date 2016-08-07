@@ -43,13 +43,18 @@ class DataSet(object):
 
 def read_datasets(data_path='', dataset_type='train'):
     print('loading data...')
-    
-    # load data
-    X_train, X_test, y_train, y_test = np.load(data_path)
-
+   
     if dataset_type == 'train':
+    	# load data
+        X_train, X_test, y_train, y_test = np.load(data_path)
         print('Training data shape:', X_train.shape)
         return DataSet(X_train, y_train)
-    else:
+    elif dataset_type == 'test':
+    	# load data
+        X_train, X_test, y_train, y_test = np.load(data_path)
         print('Test data shape:', X_test.shape)
         return DataSet(X_test, y_test)
+    elif dataset_type == 'extrapolate':
+        X, y, provinces = np.load(data_path)
+        print('Test data shape:', X.shape)
+        return DataSet(X, y)
