@@ -140,14 +140,14 @@ def evaluate(print_grid=False):
         print "Avg. RMSE", np.mean(rmse)
         print "Variance RMSE", np.var(rmse)
 
-def extrapolate():
+def extrapolate(input_file):
     with tf.device('/gpu:0'): # run on specific device
         input_tensor, pred, gt = models.import_model(num_timesteps, 
                                                      num_feats,
                                                      batch_size)
 
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
-    dataset = data_loader.read_datasets(INPUT_DATA, dataset_type='test')
+    data, labels, provinces = np.load(input_file)
 
     saver = tf.train.Saver() 
     
@@ -155,24 +155,24 @@ def extrapolate():
         saver.restore(sess, model_path)
 
         all_extrapolated = []
-        for province_data in dataset:
+        for province_data in data:
             # for one province
             # get lat and lon
             lat, lon = province_data[0, 1:]
             extrapolated = []
             for j in range(num_extrapolate):
                 pred_value = sess.run([pred], 
-                                      {input_tensor : province_data})
+                                      {input_tensor : province_data})[0][0][0]
                 extrapolated.append(pred_value)
-
                 new_sample = np.array([pred_value, lat, lon])
                 new_sample = np.reshape(new_sample, (1, -1))
-                input_data = input_data[1:, :]
-                input_data = np.concatenate((input_data, new_sample), axis=1)
+                province_data = province_data[1:, :]
+                province_data = np.concatenate((province_data, new_sample), axis=0)
                 # make example with [pred_value, lat, lon]
                 # remove first element in input batch and add extrapolated
         all_extrapolated.append(extrapolated)
 
+    print data
     print all_extrapolated
     np.save('all_extrapolated', all_extrapolated)
 
@@ -182,4 +182,4 @@ if __name__ == "__main__":
     elif args.mode == 'eval':
         evaluate(print_grid=False)
     elif args.mode == 'extrapolate':
-        extrapolate()
+        extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA)
