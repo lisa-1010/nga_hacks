@@ -62,24 +62,19 @@ def calculate_date_diff(first_date, last_date):
     # *_date are dateutil module instances
     return (last_date.year - first_date.year)*12*365 + (last_date.month - first_date.month) * 30 + first_date.day
 
-# def summarize_by_week(rows):
-#     # takes rows for particular province
-#
-#     print "summarize 10"
-#     print rows[:10]
-#     # for row in rows:
 
-def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=25, stride=1):
-
+def clean_data_convert_dates_make_normalize_lat_lon(csv_file, dataset_name):
+    # Cleans the csv file by converting the date into days from the first day.
+    # Also looks up lat lon for the province and normalizes them.
+    # Saves clean data to a new csv.
+    provinces_latlon = build_dict_provinces_latlon(LAT_LON_PROVINCES)
     first_date = find_first_date(csv_file)
     f = open(csv_file, "rb")
     rows = csv.reader(f, delimiter=',')
-    
+
     lats, lons = [], []
     raw_data_dict = defaultdict(list)
     for row in rows:
-        if row[2] != 'confirmed cases': continue
-        if row[3] == '': continue
         try:
             # since sometimes the data entry is ill-formatted
             row[3] = int(row[3])
@@ -88,7 +83,7 @@ def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=25, stride=1):
 
         total_days_since_day_zero = int((parse(row[4]) - first_date).total_seconds() / (60 * 60 * 24))
         row[4] = total_days_since_day_zero
-        lat, lon = provinces_latlon[row[1]] # get lat lon for this province from dict
+        lat, lon = provinces_latlon[row[1]]  # get lat lon for this province from dict
         lats.append(float(lat))
         lons.append(float(lon))
         raw_data_dict[row[1]].append(row)
@@ -96,70 +91,72 @@ def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=25, stride=1):
 
     mean_lat, mean_lon, scale_lat, scale_lon = compute_mean_and_scaling_factor(lats, lons)
 
-    convert_raw_data_to_numpy(raw_data_dict, num_timesteps, provinces_latlon, mean_lat, mean_lon, scale_lat, scale_lon)
-
-    # print ("mean lat: {} \t mean lon: {} \t scale lat: {} \t scale lon: {}".format(mean_lat, mean_lon, scale_lat, scale_lon ))
-
-
-
-def convert_raw_data_to_numpy(raw_data_dict, num_timesteps, provinces_latlon, mean_lat, mean_lon, scale_lat, scale_lon):
-    # takes in a dict mapping each province to all the rows
-    data = []
-    labels = []
-
-    print "number of provinces {}".format(len(raw_data_dict))
-
+    clean_rows = []
     for province, rows in raw_data_dict.iteritems():
         # for each province, go through all the rows:
-        rows = sorted(rows, key=lambda x: (x[-1])) # sort by date
+        rows = sorted(rows, key=lambda x: (x[-1]))  # sort by date
 
-        print province
-        # print np.array(rows)[:, -1]
-
-        # summarize_by_week(rows)
         lat, lon = provinces_latlon[province]
         rel_lat = float(scale_lat * (lat - mean_lat))
         rel_lon = float(scale_lon * (lon - mean_lon))
-        print ("rel_lat: {} \t rel_lon: {}".format(rel_lat, rel_lon))
 
-        for i in xrange(len(rows) - num_timesteps - 2):
+        for row in rows:
+            row.extend([rel_lat, rel_lon])
+
+        clean_rows.extend(rows)
+
+    with open("../data/" + dataset_name + "_clean.csv", "wb") as f:
+        writer = csv.writer(f, delimiter=',')
+        for row in clean_rows:
+            writer.writerow(row)
+
+
+def convert_clean_csv_to_numpy_for_rnn(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea",  num_timesteps=25, case_type = "confirmed cases"):
+    data_dict_by_province = defaultdict(list)
+    data = []
+    labels = []
+
+    with open(clean_csv_file, "rb") as f:
+        rows = csv.reader(f, delimiter=',')
+        for row in rows:
+            if row[2] == case_type:
+                data_dict_by_province[row[1]].append(row)
+
+    for province, rows in data_dict_by_province.iteritems():
+        print "processing for province: {}".format(province)
+        # for each province, go through all the rows:
+        rows = sorted(rows, key=lambda x: (x[4]))  # sort by date
+
+        for i in xrange(len(rows) - num_timesteps - 1):
             # since we are predicting the next timestep, we don't use the features from the last
             # timestep, since we wouldn't know what the prediction would be.
-
             sample_across_timesteps = []
+            prev_num_cases = 0
             for j in xrange(num_timesteps):
-                # print rows[i+j]
-                sample_across_timesteps.append([int(rows[i + j][3]), rel_lat, rel_lon])
-                # sample_across_timesteps = np.array([[int(rows[i+j][0]), rel_lat, rel_lon] for j in xrange(num_timesteps)])
+                num_cases, rel_lat, rel_lon = int(rows[i + j][3]), float(rows[i + j][5]), float(rows[i + j][6])
+                if num_cases < prev_num_cases:
+                    # to account for odd numbers in the data, where the number of cases decreases
+                    num_cases = prev_num_cases
+                prev_num_cases = num_cases
+                sample_across_timesteps.append(np.array([num_cases, rel_lat, rel_lon]))
             data.append(np.array(sample_across_timesteps))
-
-            # for j in xrange(num_timesteps):
-            #     data.append(np.array([rows[i+j][0], rel_lat, rel_lon]))
             labels.append(int(rows[i + num_timesteps][3]))
 
     dataset = train_test_split(np.array(data), np.array(labels), test_size=0.10, random_state=42)
 
-    np.save(PREPROCESSED_DATA, dataset)
+    np.save("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + ".npy", dataset)
     print ("finished processing data to numpy.")
 
 
-
-def test_data():
-    X_train, X_test, y_train, y_test = np.load(PREPROCESSED_DATA)
-
-    print ("{} {} {} {}".format(X_train.shape, X_test.shape, y_train.shape, y_test.shape))
-    print X_train[0]
-    print y_train[0]
-    print y_train[0].dtype
-
-
+# def create_data_with_one_row_per_province_aligned_in_time(csv_file, raw_data_dict, num_timesteps=25, case_type='confirmed cases'):
+#     raw_data_dict, num_timesteps, provinces_latlon, mean_lat, mean_lon, scale_lat, scale_lon = \
+#         extract_data_from_csv(csv_file, provinces_latlon, num_timesteps=num_timesteps, case_type=case_type)
 
 
 if __name__ == "__main__":
-    # provinces_latlon = build_dict_provinces_latlon(LAT_LON_PROVINCES)
-    # preprocess_for_rnn(GUINEA_DATA_PATH, provinces_latlon)
+    # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
+    #     clean_data_convert_dates_make_normalize_lat_lon(country_file, country)
 
-    test_data()
-
-    # find_first_date(GUINEA_DATA_PATH)
+    for clean_country_file, country in zip(COUNTRIES_CLEAN_DATA_PATHS, COUNTRIES):
+        convert_clean_csv_to_numpy_for_rnn(clean_country_file, dataset_name=country)
 
