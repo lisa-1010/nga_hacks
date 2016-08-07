@@ -1,10 +1,10 @@
 $(function () {
-  $('#container').highcharts({
+  $('#outbreak-effect-chart').highcharts({
     chart: {
       type: 'line'
     },
     title: {
-      text: 'Fruit Consumption'
+      text: ''
     },
     xAxis: {
       categories: ['Apples', 'Bananas', 'Oranges']
@@ -19,7 +19,7 @@ $(function () {
       data: [1, 0, 4]
     }, {
       name: 'John',
-      data: [5, 7, 3]
+      data: [2, 1, 3, 4, 7, 6, 5, 6, 9, 10, 12, 13, 15, 14, 17, 18, 20]
     }]
   });
 });
