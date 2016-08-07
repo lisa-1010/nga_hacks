@@ -17,6 +17,7 @@
 import csv
 import numpy as np
 import sys
+import copy
 
 from sklearn.cross_validation import train_test_split
 
@@ -170,34 +171,84 @@ def find_first_and_last_shared_days(data_dict_by_province):
     return first_shared_day, last_shared_day
 
 
-def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea", num_timesteps=25, case_type="confirmed cases"):
+def sort_rows_by_date(rows):
+    rows = sorted(rows, key=lambda x: int(x[4]))  # sort by date
+    return rows
+
+
+def get_index_of_row_with_exact_matching_day(rows, day):
+    i = (m for m, r in enumerate(rows) if int(r[4]) >= day).next()
+    if rows[i][4] != day:
+        return -1
+    return i
+
+
+def get_first_index_of_row_with_matching_day_or_later(rows, day):
+    i = (m for m, r in enumerate(rows) if int(r[4]) >= day).next()
+    return i
+
+
+def load_clean_data_dict_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea",
+                                         num_timesteps=25, case_type="confirmed cases"):
     data_dict_by_province = get_data_dict_from_clean_csv(clean_csv_file=clean_csv_file, dataset_name=dataset_name,
                                                          case_type=case_type)
 
-
-    provinces, data, labels =[], [], []
-
     new_data_dict_by_province = defaultdict(list)
     for province, rows in data_dict_by_province.iteritems():
-        rows = sorted(rows, key=lambda x: (x[4]))  # sort by date
+        rows = sort_rows_by_date(rows)
         first_day, last_day = find_first_and_last_entry(rows)
-        if first_day > 250:
+        if first_day > 250: # empirically determined constant
             print "first day too late. Skipping province {}".format(province)
             continue
+        for row in rows:
+            row[3] = int(row[3])  # num cases
+            row[4] = int(row[4])  # day
+            row[5] = float(row[5])  # lat
+            row[6] = float(row[6])  # lon
         new_data_dict_by_province[province] = rows
 
     first_shared_day, last_shared_day = find_first_and_last_shared_days(new_data_dict_by_province)
 
+    print ("total time range: {} days, first shared day: {}, last shared day: {}".format(last_shared_day - first_shared_day, first_shared_day, last_shared_day))
+
+    final_data_dict_by_province_with_sorted_rows = defaultdict(list)
+
+    n_padded_data_points = 0
+    for province, rows in new_data_dict_by_province.iteritems():
+        new_rows = []
+        rows = sort_rows_by_date(rows)
+        for day in xrange(first_shared_day, last_shared_day):
+            # i = get_index_of_row_with_exact_matching_day(rows, day)
+            i = (m for m, r in enumerate(rows) if int(r[4]) >= day).next()
+            if rows[i][4] == day: # if found
+                new_rows.append(rows[i])
+            else:
+                # if no entry found, just repeat the most recent row.
+                if len(new_rows) != 0:
+                    new_rows.append(new_rows[-1])
+                else:
+                    new_row = copy.copy(rows[0])
+                    new_row[3] = 0 # set number of cases to 0
+                    new_rows.append(new_row)
+                n_padded_data_points += 1
+
+        final_data_dict_by_province_with_sorted_rows[province] = new_rows
+    # print ("padded {} data points".format(n_padded_data_points))
+    return new_data_dict_by_province
 
 
+
+def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea", num_timesteps=25, case_type="confirmed cases"):
+    data_dict_by_province = get_data_dict_from_clean_csv(clean_csv_file=clean_csv_file, dataset_name=dataset_name,
+                                                         case_type=case_type)
+
+    provinces, data, labels =[], [], []
+    new_data_dict_by_province = load_clean_data_dict_aligned_by_time(clean_csv_file=clean_csv_file, dataset_name=dataset_name, case_type=case_type)
 
     for province, rows in new_data_dict_by_province.iteritems():
         rows = sorted(rows, key=lambda x: int(x[4]))  # sort by date
-        # print rows
-        # selected_rows.append(filter(lambda x: int(x[4]) == first_shared_day, rows)[0])
-        # selected_rows.append(rows.find(lambda x: int(x[4]) == first_shared_day))
 
-        i = (m for m, r in enumerate(rows) if int(r[4]) >= 250).next()
+        i = get_first_index_of_row_with_matching_day_or_later(rows, 250)
 
         print rows[i]
         # since we are predicting the next timestep, we don't use the features from the last
@@ -221,11 +272,6 @@ def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DA
     np.save("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy", dataset)
     print ("finished processing data for extrapolation.")
 
-    # data, provinces = np.load("../data/preprocessed/" + dataset_name + "_" + str(num_timesteps) + "_for_extrapolation.npy")
-    #
-    # print data[0]
-    # print provinces[0]
-
 
 if __name__ == "__main__":
     # for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
@@ -235,4 +281,12 @@ if __name__ == "__main__":
     #     convert_clean_csv_to_numpy_for_rnn(clean_country_file, dataset_name=country)
     #
 
-    create_data_for_extrapolation_aligned_by_time()
+    # create_data_for_extrapolation_aligned_by_time()
+
+    data_dict = load_clean_data_dict_aligned_by_time()
+    # print data_dict.iteritems()
+    print data_dict.items()[0]
+    print ("number of provinces: {}".format(len(data_dict.keys())))
+    print ('number of rows for this province: {}'.format(len(data_dict.items()[0])))
+
+
