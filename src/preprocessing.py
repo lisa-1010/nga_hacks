@@ -135,13 +135,13 @@ def convert_clean_csv_to_numpy_for_rnn(clean_csv_file=CLEAN_GUINEA_DATA_PATH, da
             # since we are predicting the next timestep, we don't use the features from the last
             # timestep, since we wouldn't know what the prediction would be.
             sample_across_timesteps = []
-            prev_num_cases = 0
+            # prev_num_cases = 0
             for j in xrange(num_timesteps):
                 num_cases, rel_lat, rel_lon = int(rows[i + j][3]), float(rows[i + j][5]), float(rows[i + j][6])
-                if num_cases < prev_num_cases:
-                    # to account for odd numbers in the data, where the number of cases decreases
-                    num_cases = prev_num_cases
-                prev_num_cases = num_cases
+                # if num_cases < prev_num_cases:
+                #     # to account for odd numbers in the data, where the number of cases decreases
+                #     num_cases = prev_num_cases
+                # prev_num_cases = num_cases
                 sample_across_timesteps.append(np.array([num_cases, rel_lat, rel_lon]))
             data.append(np.array(sample_across_timesteps))
             labels.append(int(rows[i + num_timesteps][3]))
@@ -203,13 +203,13 @@ def create_data_for_extrapolation_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DA
         # since we are predicting the next timestep, we don't use the features from the last
         # timestep, since we wouldn't know what the prediction would be.
         sample_across_timesteps = []
-        prev_num_cases = 0
+        # prev_num_cases = 0
         for j in xrange(num_timesteps):
             num_cases, rel_lat, rel_lon = int(rows[i + j][3]), float(rows[i + j][5]), float(rows[i + j][6])
-            if num_cases < prev_num_cases:
-                # to account for odd numbers in the data, where the number of cases decreases
-                num_cases = prev_num_cases
-            prev_num_cases = num_cases
+            # if num_cases < prev_num_cases:
+            #     # to account for odd numbers in the data, where the number of cases decreases
+            #     num_cases = prev_num_cases
+            # prev_num_cases = num_cases
             sample_across_timesteps.append(np.array([num_cases, rel_lat, rel_lon]))
 
         provinces.append(province)
