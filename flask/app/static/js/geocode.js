@@ -1,23 +1,23 @@
 function getCoordinates(localite) {
-	var STATUS_OK = 200;
+  var STATUS_OK = 200;
 
-	var request = new XMLHttpRequest();
-	request.addEventListener('load', function(event) {
-		if (request.status === STATUS_OK) {
-			if (JSON.parse(request.responseText).results[0] === undefined) {
-				console.log(localite);
-			} else {
-				var coordinates = JSON.parse(request.responseText).results[0].geometry.location;
-				console.log(localite + ',' + coordinates.lat + ',' + coordinates.lng);
-			}
-		} else {
-			console.log(localite);
-		}
-	});
+  var request = new XMLHttpRequest();
+  request.addEventListener('load', function(event) {
+    if (request.status === STATUS_OK) {
+      if (JSON.parse(request.responseText).results[0] === undefined) {
+        console.log(localite);
+      } else {
+        var coordinates = JSON.parse(request.responseText).results[0].geometry.location;
+        console.log(localite + ',' + coordinates.lat + ',' + coordinates.lng);
+      }
+    } else {
+      console.log(localite);
+    }
+  });
 
-	var url = 'http://maps.googleapis.com/maps/api/geocode/json?address=' + localite.replace(' ', '+');
-	request.open('GET', url);
-	request.send();
+  var url = 'http://maps.googleapis.com/maps/api/geocode/json?address=' + localite.replace(' ', '+');
+  request.open('GET', url);
+  request.send();
 }
 
 var localites = ['Conakry',
@@ -129,5 +129,5 @@ var localites = ['Conakry',
 'Selingue'];
 
 for (var i = 0; i < localites; i++) {
-	getCoordinates(localites[i]);
+  getCoordinates(localites[i]);
 }
