@@ -1,3 +1,5 @@
+var localites = ['dalaba', 'dabola', 'siguiri', 'kankan', 'nzerekore', 'yomou', 'dubreka', 'dinguiraye', 'lola', 'gueckedou', 'boke', 'kerouane', 'kindia', 'telimele', 'forecariah', 'coyah', 'kouroussa', 'beyla', 'boffa', 'kissidougou', 'mamou', 'faranah', 'macenta', 'pita', 'conakry'];
+
 $(function () {
   function createChart($chart, enabled) {
     $chart.highcharts({
@@ -54,7 +56,6 @@ $(function () {
     });
   }
 
-
   createChart($('#outbreak-effect'), true);
   
   var charts = []
@@ -67,4 +68,18 @@ $(function () {
   charts.forEach(function($chart, i) {
     createChart($chart, false)
   });
+
+  (function() {
+    $.get('/api/charts', {"macenta": 2, "coyah": 1, "kerouane": 1}, function(response, status) {
+      /// TODO - status code
+      for (localite in response) {
+        var data = parseStringArray(response[localite]);
+        console.log(data);
+      }
+    }, 'json');
+  })();
+
+  function parseStringArray(string) {
+    return string.map(parseFloat);
+  }
 });
