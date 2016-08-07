@@ -157,7 +157,7 @@ def close_session():
     global _sess
     _sess.close()
 
-def extrapolate(history_file, etc_dict=None):
+def _extrapolate(history_file, etc_dict=None):
     global _saver
     global _sess
     global _input_tensor
@@ -184,7 +184,7 @@ def extrapolate(history_file, etc_dict=None):
                 pred_value = 0
             extrapolated.append(pred_value)
 
-            new_value = pred_value
+            pred_value
             if etc_dict and province in etc_dict:
                 new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
                 # new_value *= (1 - etc_dict[province] * 0.1)
@@ -209,6 +209,21 @@ def extrapolate(history_file, etc_dict=None):
     # np.save('all_extrapolated', all_extrapolated)
 
     return all_extrapolated
+
+
+def extrapolate(history_file, etc_dict=None):
+    global _saver
+    global _sess
+    global _input_tensor
+    global _pred
+    global _gt
+    without_etcs = _extrapolate(history_file)
+    with_etcs = _extrapolate(history_file, etc_dict=etc_dict)
+
+    both_graphs = {}
+    for province in without_etcs.keys():
+        both_graphs[province] = (without_etcs[province], with_etcs[province])
+    return both_graphs
 
 
 test_dict = {
