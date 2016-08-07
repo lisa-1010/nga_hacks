@@ -1,3 +1,18 @@
+# data_utils.py
+# @author: Lisa Wang
+# @created: August 6, 2016
+#
+#===============================================================================
+# DESCRIPTION:
+#
+# Collection of functions for data cleaning and exploration.
+#
+#===============================================================================
+# CURRENT STATUS: Working
+#===============================================================================
+# USAGE: python data_utils.py
+#===============================================================================
+
 import csv
 import numpy as np
 from collections import Counter

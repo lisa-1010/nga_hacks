@@ -1,10 +1,23 @@
+# preprocessing.py
+# @author: Lisa Wang, Nish Khandwala
+# @created: August 6, 2016
+#
+#===============================================================================
+# DESCRIPTION:
+#
+# To preprocess the csv data files to numpy matrices, split into train and test
+# which are ready to be fed into an RNN.
+#
+#===============================================================================
+# CURRENT STATUS: Working
+#===============================================================================
+# USAGE: python preprocessing.py
+#===============================================================================
+
 import csv
 import numpy as np
-import datetime
 
 from sklearn.cross_validation import train_test_split
-
-from sklearn import preprocessing
 
 from constants import *
 from collections import defaultdict
