@@ -6,6 +6,8 @@ SIERRA_DATA_PATH = "../data/sierra.csv"
 ALL_THREE_COUNTRIES_DATA_PATH = "../data/all_three_countries.csv"
 LAT_LON_PROVINCES = "../data/lat-lon-provinces.csv"
 
+PREPROCESSED_DATA = "../data/preprocessed.npy"
+
 COUNTRIES = ["guinea", "liberia", "sierra leone"]
 
 COUNTRIES_DATA_PATHS = [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH]
