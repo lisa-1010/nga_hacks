@@ -217,24 +217,24 @@ def load_clean_data_dict_aligned_by_time(clean_csv_file=CLEAN_GUINEA_DATA_PATH, 
     for province, rows in new_data_dict_by_province.iteritems():
         new_rows = []
         rows = sort_rows_by_date(rows)
-        for day in xrange(first_shared_day, last_shared_day):
+
+        for day in xrange(first_shared_day, last_shared_day + 1):
             # i = get_index_of_row_with_exact_matching_day(rows, day)
             i = (m for m, r in enumerate(rows) if int(r[4]) >= day).next()
             if rows[i][4] == day: # if found
-                new_rows.append(rows[i])
+                new_row = rows[i]
             else:
                 # if no entry found, just repeat the most recent row.
-                if len(new_rows) != 0:
-                    new_rows.append(new_rows[-1])
+                if len(new_rows) > 0:
+                    new_row = new_rows[-1]
                 else:
                     new_row = copy.copy(rows[0])
                     new_row[3] = 0 # set number of cases to 0
-                    new_rows.append(new_row)
                 n_padded_data_points += 1
+            new_rows.append(new_row)
 
         final_data_dict_by_province_with_sorted_rows[province] = new_rows
-    # print ("padded {} data points".format(n_padded_data_points))
-    return new_data_dict_by_province
+    return final_data_dict_by_province_with_sorted_rows
 
 
 
@@ -285,8 +285,13 @@ if __name__ == "__main__":
 
     data_dict = load_clean_data_dict_aligned_by_time()
     # print data_dict.iteritems()
-    print data_dict.items()[0]
-    print ("number of provinces: {}".format(len(data_dict.keys())))
-    print ('number of rows for this province: {}'.format(len(data_dict.items()[0])))
+    # print data_dict.items()[0]
+    provinces = data_dict.keys()
+    # print provinces
+    for province,rows in data_dict.iteritems():
+        print len(rows)
 
-
+    # print ("number of provinces: {}".format(len(data_dict.keys())))
+    # print ('number of rows for this province: {}'.format(len(data_dict.items()[0])))
+    #
+    #
