@@ -25,10 +25,10 @@ args = parser.parse_args()
 # Training Constants
 learning_rate = 1e-4
 batch_size = 1
-num_timesteps = 4
+num_timesteps = 25
 num_feats = 3
 max_epoch = 601
-dataset_size = 3726 
+dataset_size = 3069
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
 
 if args.working_directory:
@@ -38,16 +38,14 @@ else:
 if args.save_frequency:
     save_frequency = args.save_frequency
 else:
-    save_frequency = 200
+    save_frequency = 15
 if args.model_path:
     model_path = args.model_path
 else:
     model_path = 'trial/checkpoints/model.ckpt-600'
 
 def get_loss(pred, gt):
-    print "Hi"
-    print pred.get_shape(), gt.get_shape()
-    return tf.div(tf.sqrt(tf.reduce_mean(tf.square(tf.sub(gt, pred)))),
+    return tf.div(tf.reduce_mean(tf.square(tf.sub(gt, pred))),
                   tf.constant(float(batch_size)))
 
 def train():
@@ -84,7 +82,6 @@ def train():
             for i in range(updates_per_epoch):
                 pbar.update(i)
                 input_batch, gt_batch = dataset.next_batch(batch_size)
-                import pdb; pdb.set_trace()
                 _, loss_value = sess.run([train, loss], 
                                          {input_tensor : input_batch,
                                           gt : [gt_batch]})
@@ -133,9 +130,13 @@ def evaluate(print_grid=False):
             all_gt.append(gt_batch)
 
         num_align = 0
+        rmse = []
         for i in range(len(all_pred)):
             if all_pred[i] == all_gt[i]: num_align += 1
+            rmse.append(np.sqrt(np.pow((all_pred[i] - all_gt[i]), 2)))
         print "Accuracy:", float(num_align)/len(all_pred)
+        print "Avg. RMSE", np.mean(rmse)
+        print "Variance RMSE", np.var(rmse)
 
 if __name__ == "__main__":
     if args.mode == 'train':
