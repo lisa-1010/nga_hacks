@@ -30,6 +30,8 @@ LAT_LON_PROVINCES = "../data/lat-lon-provinces.csv"
 
 PREPROCESSED_GUINEA_DATA = "../data/preprocessed/guinea_25.csv"
 
+PREPROCESSED_GUINEA_DATA_EXTRA = "../data/preprocessed/guinea_25_for_extrapolation.csv"
+
 COUNTRIES = ["guinea", "liberia", "sierra", "all_three_countries"]
 
 COUNTRIES_DATA_PATHS = [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH, ALL_THREE_COUNTRIES_DATA_PATH]
