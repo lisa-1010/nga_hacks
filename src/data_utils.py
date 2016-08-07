@@ -132,6 +132,11 @@ def remove_invalid_provinces(country_file, provinces_file):
             writer.writerow(row)
 
 
+    def load_data_rnn():
+        return np.load(PREPROCESSED_DATA)
+
+
+
 if __name__ == "__main__":
     # lower_entire_csv(RAW_DATA_PATH)
     # find_case_types()

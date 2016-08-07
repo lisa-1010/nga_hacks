@@ -50,6 +50,11 @@ def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=4, stride=1):
     raw_data_dict = defaultdict(list)
     for row in rows:
         if row[2] != 'confirmed cases': continue
+        if row[3] == '': continue
+        try:
+            row[3] = int(row[3])
+        except:
+            continue
         lat, lon = provinces_latlon[row[1]]
         lats.append(float(lat))
         lons.append(float(lon))
@@ -69,11 +74,11 @@ def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=4, stride=1):
     for province, rows in raw_data_dict.iteritems():
         # for each province, go through all the rows:
         lat, lon = provinces_latlon[province]
-        rel_lat = scale_lat * (lat - mean_lat)
-        rel_lon = scale_lon * (lon - mean_lon)
+        rel_lat = float(scale_lat * (lat - mean_lat))
+        rel_lon = float(scale_lon * (lon - mean_lon))
         print ("rel_lat: {} \t rel_lon: {}".format(rel_lat, rel_lon))
 
-        for i in xrange(len(rows) - num_timesteps - 1):
+        for i in xrange(len(rows) - num_timesteps - 2):
             # since we are predicting the next timestep, we don't use the features from the last
             # timestep, since we wouldn't know what the prediction would be.
 
@@ -82,13 +87,14 @@ def preprocess_for_rnn(csv_file, provinces_latlon, num_timesteps=4, stride=1):
 
             # for j in xrange(num_timesteps):
             #     data.append(np.array([rows[i+j][0], rel_lat, rel_lon]))
+            print (rows[i+j+1][0])
+            print rows[i+j+1]
             labels.append(rows[i+j+1][0])
 
 
     dataset = train_test_split(np.array(data), np.array(labels), test_size = 0.10, random_state = 42)
     # import pdb; pdb.set_trace()
     np.save(PREPROCESSED_DATA, dataset)
-
 
 def test_data():
     X_train, X_test, y_train, y_test = np.load(PREPROCESSED_DATA)
