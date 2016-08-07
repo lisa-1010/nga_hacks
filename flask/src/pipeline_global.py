@@ -7,12 +7,14 @@ import models
 import sys
 import os
 import data_loader
+import pickle
 
 from collections import defaultdict
 
 from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
+from preprocessing import get_lat_lon_map
 
 _saver = None
 _sess = None
@@ -168,6 +170,8 @@ def _extrapolate(history_file, etc_dict=None):
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
     data, provinces = np.load(history_file)
 
+    lat_lon_map = get_lat_lon_map(dataset_name="guinea")
+
     all_extrapolated = defaultdict(list)
     all_new_values = defaultdict(list)
     for province, province_data in zip(provinces, data):
@@ -203,14 +207,6 @@ def _extrapolate(history_file, etc_dict=None):
         all_extrapolated[province] = extrapolated
         all_new_values[province] = new_values
 
-    #
-    # for i, province in enumerate(provinces):
-    #     print province
-    #     print data[i]
-    #     print all_extrapolated[province]
-    #     print all_new_values[province]
-    # np.save('all_extrapolated', all_extrapolated)
-
     return all_extrapolated
 
 
@@ -225,7 +221,7 @@ def extrapolate(history_file, etc_dict=None):
 
     both_graphs = {}
     for province in without_etcs.keys():
-        both_graphs[province] = (without_etcs[province], with_etcs[province])
+        both_graphs[province] = [without_etcs[province], with_etcs[province]]
     return both_graphs
 
 
@@ -234,6 +230,8 @@ test_dict = {
     "coyah": 1,
     "kerouane": 1
 }
+
+
 
 def test_those_globals():
     init_model()
