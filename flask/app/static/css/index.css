@@ -1,3 +1,27 @@
-h1 {
-  color: red;
+.page-content {
+  margin: 0 0 0 360px;
+  padding: 80px 240px 80px 120px;
+  background-color: #efefef;
+}
+
+/**
+ * Sidebar
+ */
+.sidebar-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #fafafa;
+  width: 360px;
+  height: 100%;
+  padding: 10px 10px;
+}
+
+.sidebar-left .ui.header {
+  margin: 0 0 6px;
+}
+
+.sidebar-left .icon {
+  height: 20px;
+  width: 20px;
 }
