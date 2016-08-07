@@ -1,15 +1,48 @@
-$(document).ready(function() {
-  var INACTIVE = 0
-  var ACTIVE = 1
+var colors = ['#ffffff', '#ffffe0','#ffd4ad','#ffa77a','#ff7246','#ff0000'];
+var numPrefectures = 34;
 
+var populationRanges = ['<150000', '150000-200000', '200000-275000', '275000-295000', '295000-350000', '>350000']
+var population = {'Beyla': 26,
+'Boffa': 13,
+'Boke': 31,
+'Conakry': 34,
+'Coyah': 15,
+'Dabola': 9,
+'Dalaba': 5,
+'Dinguiraye': 11,
+'Dubreka': 27,
+'Faranah': 18,
+'Forecariah': 14,
+'Fria': 1,
+'Gaoual': 10,
+'Gueckedou': 22,
+'Kankan': 32,
+'Kerouane': 12,
+'Kindia': 30,
+'Kissidougou': 19,
+'Koubia': 2,
+'Koundara': 4,
+'Kouroussa': 16,
+'Labe': 24,
+'Lelouma': 6,
+'Lola': 7,
+'Macenta': 23,
+'Mali': 21,
+'Mamou': 25,
+'Mandiana': 28,
+'Nzerekore': 29,
+'Pita': 17,
+'Siguiri': 33,
+'Telimele': 20,
+'Tougue': 3,
+'Yomou': 8};
+
+$(document).ready(function() {
   var state = {}
 
   function colorProvince($province, id) {
-    if (state[id]['isActive']) {
-      $province.attr('fill', 'red');
-    } else {
-      $province.attr('fill', 'white');
-    }
+    var index = state[id]['numTreatmentCenters'];
+    $province.attr('fill', colors[(index + 1) % colors.length]);
   }
 
   function createRow($province) {
@@ -37,29 +70,50 @@ $(document).ready(function() {
     var id = $province.attr('id');
 
     state[id] = {}
-    state[id]['isActive'] = false;
     state[id]['numTreatmentCenters'] = 0;
 
     // Attaches event listeners to the path
     $province.on('click', function() {
-      state[id]['isActive'] = !state[id]['isActive'];
+      state[id]['numTreatmentCenters'] = (state[id]['numTreatmentCenters'] + 1) % colors.length;
+
       colorProvince($province, id);
 
       var $elem = $('#t-' + id);
       console.log($elem);
       var scrollPosition = $elem.position().top;
       $('#treatment-centers').animate({scrollTop: scrollPosition});
+
     });
-    $province.hover(function() {
-      $province.attr('fill', 'blue');
-    }, function() {
-      colorProvince($province, id);
-    })
 
     // Creates the Treatment Center element in table
     $treatmentCenters.append(createRow($province));
     $treatmentCenters.append($('<div></div>').attr('class', 'ui divider'));
   });
 
+  $('#gradient').html(getGradientHTML());
 
+  $('.population').click(function() {
+    createPopulationMap();
+  });
 });
+
+function getGradientHTML() {
+  var html = '';
+  for (var i = 0; i < colors.length; i++) {
+    html += '<td bgcolor="' + colors[i] + '">&nbsp;' + populationRanges[i] + '&nbsp;</td>';
+  }
+  return html;
+}
+
+function createPopulationMap() {
+  $('svg').find('path').each(function(index, province) {
+    var name = $(province).attr('data-name');
+    var count = population[name];
+    $(province).attr('fill', getGradientColor(count));
+  });
+};
+
+function getGradientColor(count) {
+  var intervalSize = numPrefectures / colors.length;
+  return colors[Math.floor((count - 1) / intervalSize)];
+}
