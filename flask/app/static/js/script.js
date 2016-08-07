@@ -1,7 +1,8 @@
 var colors = ['#ffffff', '#ffffe0','#ffd4ad','#ffa77a','#ff7246','#ff0000'];
 var numPrefectures = 34;
 
-var populationRanges = ['<150000', '150000-200000', '200000-275000', '275000-295000', '295000-350000', '>350000']
+var treatmentRanges = ['0 Centers', '1 Center', '2 Centers', '3 Centers', '4 Centers', '5 Centers'];
+var populationRanges = ['<150000', '150000-200000', '200000-275000', '275000-295000', '295000-350000', '>350000'];
 var population = {'Beyla': 26,
 'Boffa': 13,
 'Boke': 31,
@@ -110,7 +111,7 @@ $(document).ready(function() {
   function getGradientHTML() {
     var html = '';
     for (var i = 0; i < colors.length; i++) {
-      html += '<td bgcolor="' + colors[i] + '">&nbsp;' + populationRanges[i] + '&nbsp;</td>';
+      html += '<td bgcolor="' + colors[i] + '">&nbsp;' + (state['isPopulationMap'] ? populationRanges[i] : treatmentRanges[i]) + '&nbsp;</td>';
     }
     return html;
   }
@@ -122,6 +123,7 @@ $(document).ready(function() {
       var count = population[name];
       $(province).attr('fill', getGradientColor(count));
     });
+    $('#gradient').html(getGradientHTML());
   };
 
   function getGradientColor(count) {
@@ -132,9 +134,8 @@ $(document).ready(function() {
   function createTreatmentMap() {
     state['isPopulationMap'] = false;
     $('.page-content svg').find('path').each(function(index, province) {
-      var id = $(province).attr('id');
-      // state[id]['numTreatmentCenters'] = 0;
       $(province).attr('index', colorProvince($(province)));
     });
+    $('#gradient').html(getGradientHTML());
   }
 });
