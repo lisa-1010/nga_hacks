@@ -93,7 +93,6 @@ def remove_invalid_provinces(country_file, provinces_file):
         rows = csv.reader(f, delimiter=',')
         for row in rows:
             row[1] = row[1].strip()
-            row[1] = re.m
             if row[1] == 'for\xc3\xa9cariah':
                 row[1] = 'forecariah'
             elif row[1] == 'lab\xc3\xa9':
@@ -109,11 +108,12 @@ def remove_invalid_provinces(country_file, provinces_file):
                 excluded_provinces.add(row[1])
                 # print 'exluding province {}'.format(row[1])
 
-    print excluded_provinces
-    # with open(country_file, "wb") as f:
-    #     writer = csv.writer(f, delimiter=',')
-    #     for row in new_rows:
-    #         writer.writerow(row)
+    # print len(new_rows)
+    print "excluded provinces: {}".format(excluded_provinces)
+    with open(country_file, "wb") as f:
+        writer = csv.writer(f, delimiter=',')
+        for row in new_rows:
+            writer.writerow(row)
 
 
 if __name__ == "__main__":
