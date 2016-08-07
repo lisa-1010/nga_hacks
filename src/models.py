@@ -23,9 +23,9 @@ def rnn(rnn_inputs):
             squash_sequence())[num_timesteps - 1,:]
 
 def network(): 
-    gt = tf.placeholder(tf.float32, [batch_size, 1])     
+    gt = tf.placeholder(tf.float32, 1)
     input_tensor = tf.placeholder(tf.float32,
-                                    [batch_size, num_timesteps, len_feats])
+                                  [num_timesteps, len_feats])
 
     assert(num_timesteps > 1)
     with tf.variable_scope("model") as scope:
@@ -35,6 +35,7 @@ def network():
                                variance_epsilon=0.001,
                                scale_after_normalization=True):
             rnn_feats = rnn(input_tensor) # dim = [batch_size, hidden]
+            rnn_feats = tf.reshape(rnn_feats, [batch_size, -1])
     pred = fc_layers(rnn_feats)
 
     return input_tensor, pred, gt
