@@ -182,12 +182,16 @@ def _extrapolate(history_file, etc_dict=None):
                                   {_input_tensor: province_data})[0][0][0]
             if pred_value < 0:
                 pred_value = 0
+
+            # pred_value = max(old_value, pred_value)
             extrapolated.append(pred_value)
 
-            pred_value
+            new_value = pred_value
+
             if etc_dict and province in etc_dict:
-                new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
+                new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 2)))
                 # new_value *= (1 - etc_dict[province] * 0.1)
+
             old_value = pred_value
             new_values.append(new_value)
             new_sample = np.array([new_value, lat, lon])
@@ -234,7 +238,7 @@ test_dict = {
 
 def test_those_globals():
     init_model()
-    print extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)["macenta"]
+    print extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)
 
 
 if __name__ == "__main__":
