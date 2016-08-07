@@ -81,15 +81,13 @@ def train():
             pbar.start()
             for i in range(updates_per_epoch):
                 pbar.update(i)
-                conflict_grids_batch, gt_batch, mask_batch = \
-                    dataset.next_batch(batch_size)
+                input_batch, gt_batch = dataset.next_batch(batch_size)
                 _, loss_value = sess.run([train, loss], 
-                             {conflict_grids : conflict_grids_batch,
-                                          gt : gt_batch,
-                                          mask: mask_batch})
+                                         {input_tensor : input_batch,
+                                          gt : gt_batch})
                 training_loss += np.sum(loss_value)
 
-            training_loss = training_loss/(updates_per_epoch * batch_size)
+            training_loss = training_loss/(updates_per_epoch)
             print("Loss %f" % training_loss)
             
             # save model
@@ -102,19 +100,17 @@ def train():
 
                 # save summaries
                 summary_str = sess.run(merged, 
-                              feed_dict={conflict_grids : conflict_grids_batch,
+                              feed_dict={input_tensor : input_batch,
                                          gt : gt_batch,
-                                         mask: mask_batch,
                                          loss_placeholder: training_loss})
                 writer.add_summary(summary_str, global_step=epoch)
-
         writer.close()
 
 def evaluate(print_grid=False):
     with tf.device('/gpu:0'): # run on specific device
-        conflict_grids, pred, gt, mask = models.import_model(num_timesteps, 
-                                 input_size,
-                                                             batch_size)
+        input_tensor, pred, gt = models.import_model(num_timesteps, 
+                                                     num_feats,
+                                                     batch_size)
 
     dataset = data_loader.read_datasets(data_file, dataset_type='test')
 
@@ -125,70 +121,18 @@ def evaluate(print_grid=False):
 
         all_pred, all_gt = [], []
         for i in range(updates_per_epoch):
-            conflict_grids_batch, gt_batch, mask_batch = \
-                                    dataset.next_batch(batch_size)
+            input_batch, gt_batch = dataset.next_batch(batch_size)
             pred_value = sess.run([pred], 
-                                  {conflict_grids : conflict_grids_batch,
-                                   gt : gt_batch,
-                                   mask: mask_batch})
+                                  {input_tensor : input_batch,
+                                   gt : gt_batch})
 
-            pred_value = pred_value * mask_batch
-            to_remove_idxs = np.where(mask_batch.flatten() < 1)
-            pred_value = np.delete(pred_value.flatten(), to_remove_idxs)
-            gt_batch = np.delete(gt_batch.flatten(), to_remove_idxs)
-            assert(len(pred_value) == len(gt_batch))
+            all_pred.append(pred_value)
+            all_gt.append(gt_batch)
 
-            for k in range(len(pred_value)):
-                all_pred.append(pred_value[k])
-                all_gt.append(gt_batch[k])
-
-            if print_grid:
-                np.set_printoptions(precision=1, linewidth = 150, suppress=True)
-                print('-'*80)
-                print(np.squeeze(pred_value)) 
-                print(np.squeeze(gt_batch))
-       
-                assert(len(all_pred) == len(all_gt))
-    
         num_align = 0
         for i in range(len(all_pred)):
-            if all_gt[i] > 0:
-                if all_pred[i] > 0.5: num_align += 1
-            elif all_gt[i] < 1:
-                if all_pred[i] <= 0.5: num_align += 1
-        print "Aligned:", float(num_align)/len(all_pred)
-    
-        threshold = 0.5
-        precision_num, precision_denom = 0.0, 0.0
-        for i in range(len(all_pred)):
-            if all_gt[i] == 1:
-                if all_pred[i] >= threshold:
-                    precision_num += 1
-                    precision_denom += 1
-            else:
-                 if all_pred[i] >= threshold: precision_denom += 1
-    
-        recall_num, recall_denom = 0.0, 0.0
-        for i in range(len(all_pred)):
-            if all_gt[i] == 1:
-                if all_pred[i] >= threshold:
-                    recall_num += 1
-                    recall_denom += 1
-                else:
-                    recall_denom += 1
-
-        print "Precision", float(precision_num)/precision_denom
-        print "Recall", float(recall_num)/recall_denom
-                
-        ''' 
-        precision, recall, thresholds = precision_recall_curve(all_gt, all_pred)
-        print("Precision:")
-        print(precision)
-        print("Recall:")
-        print(recall)
-        print("Thresholds:")
-        print(thresholds)
-        '''
+            if all_pred[i] == all_gt[i]: num_align += 1
+        print "Accuracy:", float(num_align)/len(all_pred)
 
 if __name__ == "__main__":
     if args.mode == 'train':
