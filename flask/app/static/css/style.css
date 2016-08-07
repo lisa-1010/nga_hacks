@@ -53,6 +53,10 @@
   margin: 10px;
 }
 
+.sidebar-left #treatment-headers div {
+  margin: 10px;
+}
+
 .sidebar-left #treatment-centers div .A {
   display: inline-block;
   vertical-align: middle;
@@ -65,14 +69,29 @@
   vertical-align: middle;
   width: 100px;
   height: 60px;
-  margin-left: 40px;
-  margin-right: 40px;
+  margin: 0 32px 0 40px;
 }
 
 .sidebar-left #treatment-centers div .C {
   display: inline-block;
   vertical-align: middle;
   padding-top: 22px;
+}
+
+.sidebar-left #treatment-headers div .A {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.sidebar-left #treatment-headers div .B {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 72px 0 50px;
+}
+
+.sidebar-left #treatment-headers div .C {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .sidebar-left .selected {
