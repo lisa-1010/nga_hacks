@@ -128,7 +128,7 @@ $(document).ready(function() {
     state['isPopulationMap'] = false;
     $('.page-content svg').find('path').each(function(index, province) {
       var id = $(province).attr('id');
-      state[id]['numTreatmentCenters'] = 0;
+      // state[id]['numTreatmentCenters'] = 0;
       $(province).attr('index', colorProvince($(province)));
     });
   }

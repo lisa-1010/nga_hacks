@@ -12,6 +12,10 @@
   cursor: pointer;
 }
 
+.page-content table {
+  margin-top: 4px;
+}
+
 /**
  * Sidebar
  */
