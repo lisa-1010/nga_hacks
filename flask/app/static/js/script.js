@@ -62,10 +62,15 @@ $(document).ready(function() {
       var elem = document.getElementById('t-' + id);
       var $elem = $(elem); // I'm too lazy to remove the "." from the id to make it compatible with JQuery
       $elem.find('.C').html(state[id]['numTreatmentCenters']);
-      console.log($elem.offset().top);
-      $('sidebar-left').animate({
-        scrollTop: $elem.offset().top
-      }, 2000);
+
+      // Attempt 1
+      // EPPZScrollTo.scrollVerticalToElementById('t-' + id, 20);
+
+      // Attempt 2
+      // console.log($elem.offset().top);
+      // $('sidebar-left').animate({
+      //   scrollTop: $elem.offset().top
+      // }, 2000);
     });
 
     // Creates the Treatment Center element in table
