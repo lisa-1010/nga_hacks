@@ -1,7 +1,9 @@
 import numpy as np
 from preprocessing import *
+from sklearn.cross_validation import train_test_split
 
-degree_interval = 0.5
+degree_interval = 0.08
+num_timesteps = 10
 
 def fill_grid(grid, clean_dict, cardinals):
     north, south, east, west = cardinals
@@ -10,6 +12,9 @@ def fill_grid(grid, clean_dict, cardinals):
         rows = sorted(rows, key=lambda x: (x[4]))  # sort by date
         x = int(np.floor((rows[0][6] - west)/degree_interval))
         y = int(np.floor((rows[0][5] - south)/degree_interval))
+        if (x, y) in grid_province_dict: # HACKY AF
+            x += 1
+            y += 1
 	grid_province_dict[(x, y)] = province
         for t in range(len(rows)):
             feat = rows[t][4]
@@ -24,6 +29,13 @@ def calculate_grid_size(latitudes, longitudes):
 
     num_y = int((north - south) / degree_interval)
     num_x = int((east - west) / degree_interval)
+    if num_x > num_y:
+        north += num_x - num_y
+        num_y = num_x
+    else:
+        east += num_y - num_x 
+        num_x = num_y
+
     return num_x, num_y, (north, south, east, west)
 
 def get_grid(clean_dict):
@@ -57,12 +69,16 @@ def get_data(clean_dict):
                 mask[i, j] = 0
 
     return X, y, mask, grid_province_dict
-   
+
+def get_train_test(X, y, test_percent=0.10):
+    return train_test_split(X, y, test_size=test_percent, random_state=42)
+ 
 def preprocess_for_cnn(clean_csv_file=CLEAN_GUINEA_DATA_PATH, dataset_name="guinea",
                                          num_timesteps=25, case_type="confirmed cases"):
     clean_dict = load_clean_data_dict_aligned_by_time(clean_csv_file, dataset_name, num_timesteps, case_type)
     X, y, mask, grid_province_dict = get_data(clean_dict)
-    import pdb; pdb.set_trace()
+    X_train, X_test, y_train, y_test = get_train_test(X, y)
+    np.save('cnn_data', (X_train, X_test, y_train, y_test, mask, grid_province_dict))
 
 if __name__ == '__main__':
     preprocess_for_cnn()

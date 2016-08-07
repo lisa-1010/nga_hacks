@@ -3,10 +3,10 @@ import prettytensor as pt
 import numpy as np
 import scipy.io as io
 import argparse
-import cnn_models
+import cnn_models as models
 import sys
 import os
-import cnn_data_loader
+import cnn_data_loader as data_loader
 
 from collections import defaultdict
 
@@ -27,12 +27,13 @@ args = parser.parse_args()
 # Training Constants
 learning_rate = 1e-4
 batch_size = 1
-num_timesteps = 
+num_timesteps = 10 
 num_feats = 1
 max_epoch = 601
-num_extrapolate = 
-dataset_size = 
+num_extrapolate = 10
+dataset_size = 135 
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
+input_size = (25, 25, 1)
 
 if args.working_directory:
     working_directory = args.working_directory
@@ -55,13 +56,13 @@ def get_loss(pred, gt, mask):
 def train():
     with tf.device('/gpu:0'): # run on specific device
         input_tensor, pred, gt, mask = models.import_model(num_timesteps,
-                                                           num_feats,
+                                                           input_size,
                                                            batch_size)
         loss = get_loss(pred, gt, mask)
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
 
-    dataset = data_loader.read_datasets(PREPROCESSED_DATA)
+    dataset = data_loader.read_datasets('./cnn_data.npy')
     saver = tf.train.Saver()  # defaults to saving all variables
 
     # logging the loss function
@@ -115,10 +116,10 @@ def train():
 def evaluate(print_grid=False):
     with tf.device('/gpu:0'): # run on specific device
         input_tensor, pred, gt, mask = models.import_model(num_timesteps,
-                                                           num_feats,
+                                                           input_size,
                                                            batch_size)
 
-    dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
+    dataset = data_loader.read_datasets('./cnn_data.npy', dataset_type='test')
 
     saver = tf.train.Saver()
 
@@ -127,31 +128,27 @@ def evaluate(print_grid=False):
 
         all_pred, all_gt = [], []
         for i in range(updates_per_epoch):
-            input_batch, gt_batch = dataset.next_batch(batch_size)
+            input_batch, gt_batch, mask_batch = dataset.next_batch(batch_size)
             pred_value = sess.run([pred],
                                   {input_tensor : input_batch,
-                                   gt : [gt_batch]})
-
+                                   gt : gt_batch,
+                                   mask : mask_batch})
             all_pred.append(pred_value)
             all_gt.append(gt_batch)
 
-        num_align = 0
         rmse = []
         for i in range(len(all_pred)):
-            if all_pred[i] == all_gt[i]: num_align += 1
             rmse.append(np.sqrt(np.power((all_pred[i] - all_gt[i]), 2)))
 
-        print "Accuracy:", float(num_align)/len(all_pred)
         print "Avg. RMSE", np.mean(rmse)
         print "Variance RMSE", np.var(rmse)
-
 
 
 def extrapolate(history_file, etc_dict=None):
     # etc_dict is a dict mapping from province to # of new ETCs there
     with tf.device('/gpu:0'):  # run on specific device
-        input_tensor, pred, gt = models.import_model(num_timesteps,
-                                                     num_feats,
+        input_tensor, pred, gt, mask = models.import_model(num_timesteps,
+                                                     input_size,
                                                      batch_size)
 
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
@@ -218,4 +215,4 @@ if __name__ == "__main__":
             "coyah" : 1,
             "kerouane" : 1
         }
-        extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, etc_dict)
+        extrapolate(LOL, etc_dict)
