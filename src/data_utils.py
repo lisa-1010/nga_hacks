@@ -1,14 +1,8 @@
 import csv
 from collections import Counter
 
-RAW_DATA_PATH = "data/data-ebola-public.csv"
-CLEAN_DATA_PATH = "data/data-ebola-public-clean.csv"
-GUINEA_DATA_PATH = "data/guinea.csv"
-LIBERIA_DATA_PATH = "data/liberia.csv"
-SIERRA_DATA_PATH = "data/sierra.csv"
 
-countries = ["guinea", "liberia", "sierra leone"]
-
+from constants import *
 
 def lower_entire_csv(csv_file):
     lower_rows = []
@@ -74,7 +68,7 @@ if __name__ == "__main__":
     # filter_by_country(CLEAN_DATA_PATH, LIBERIA_DATA_PATH, country="liberia")
     # filter_by_country(CLEAN_DATA_PATH, SIERRA_DATA_PATH, country="sierra leone")
 
-    for country, country_file in zip(countries, [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH]):
+    for country, country_file in zip(COUNTRIES, [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH]):
         print country
         count_num_provinces(country_file)
         find_case_types(country_file)
