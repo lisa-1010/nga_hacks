@@ -170,7 +170,7 @@ def _extrapolate(history_file, etc_dict=None):
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
     data, provinces = np.load(history_file)
 
-    lat_lon_map = get_lat_lon_map(dataset_name="guinea")
+    # lat_lon_map = get_lat_lon_map(dataset_name="guinea")
 
     all_extrapolated = defaultdict(list)
     all_new_values = defaultdict(list)
