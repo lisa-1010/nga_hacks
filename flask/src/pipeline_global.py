@@ -24,13 +24,6 @@ _gt = None
 np.random.seed(1234)
 tf.set_random_seed(0)
 
-parser = argparse.ArgumentParser(description='Epidemic Response System')
-parser.add_argument('-wd', '--working_directory', help='directory for storing logs')
-parser.add_argument('-sf', '--save_frequency', help='Number of epochs before saving')
-parser.add_argument('--model_path', help='Stored model path')
-parser.add_argument('mode', choices=('train', 'eval', 'extrapolate', 'etc_user'), help='train or eval')
-args = parser.parse_args()
-
 # Training Constants
 learning_rate = 1e-4
 batch_size = 1
@@ -41,18 +34,7 @@ num_extrapolate = 20
 dataset_size = 3069
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
 
-if args.working_directory:
-    working_directory = args.working_directory
-else:
-    working_directory = 'trial/'
-if args.save_frequency:
-    save_frequency = args.save_frequency
-else:
-    save_frequency = 10
-if args.model_path:
-    model_path = args.model_path
-else:
-    model_path = 'good_checkpoints/model.ckpt-50'
+model_path = '/Users/lisa1010/dev/nga_hacks/flask/src/good_checkpoints/model.ckpt-50'
 
 def get_loss(pred, gt):
     return tf.div(tf.reduce_mean(tf.square(tf.sub(gt, pred))),
@@ -241,6 +223,13 @@ def test_those_globals():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Epidemic Response System')
+    parser.add_argument('-wd', '--working_directory', help='directory for storing logs')
+    parser.add_argument('-sf', '--save_frequency', help='Number of epochs before saving')
+    parser.add_argument('--model_path', help='Stored model path')
+    parser.add_argument('mode', choices=('train', 'eval', 'extrapolate', 'etc_user'), help='train or eval')
+    args = parser.parse_args()
+
     if args.mode == 'train':
         train()
     elif args.mode == 'eval':
@@ -250,3 +239,16 @@ if __name__ == "__main__":
     elif args.mode == 'etc_user':
         test_those_globals()
         # extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)
+
+    if args.working_directory:
+        working_directory = args.working_directory
+    else:
+        working_directory = 'trial/'
+    if args.save_frequency:
+        save_frequency = args.save_frequency
+    else:
+        save_frequency = 10
+    if args.model_path:
+        model_path = args.model_path
+    else:
+        model_path = 'good_checkpoints/model.ckpt-50'
