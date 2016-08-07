@@ -146,7 +146,8 @@ def extrapolate():
                                                      num_feats,
                                                      batch_size)
 
-    dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
+    # dataset should be [num_provinces x (num_timesteps, num_feats)]
+    dataset = data_loader.read_datasets(INPUT_DATA, dataset_type='test')
 
     saver = tf.train.Saver() 
     
@@ -154,20 +155,26 @@ def extrapolate():
         saver.restore(sess, model_path)
 
         all_extrapolated = []
-        for i in range(updates_per_epoch):
+        for province_data in dataset:
             # for one province
-            input_batch, gt_batch = dataset.next_batch(batch_size)
             # get lat and lon
+            lat, lon = province_data[0, 1:]
             extrapolated = []
             for j in range(num_extrapolate):
-                import pdb; pdb.set_trace()
                 pred_value = sess.run([pred], 
-                                      {input_tensor : input_batch,
-                                       gt : [gt_batch]})
+                                      {input_tensor : province_data})
                 extrapolated.append(pred_value)
+
+                new_sample = np.array([pred_value, lat, lon])
+                new_sample = np.reshape(new_sample, (1, -1))
+                input_data = input_data[1:, :]
+                input_data = np.concatenate((input_data, new_sample), axis=1)
                 # make example with [pred_value, lat, lon]
                 # remove first element in input batch and add extrapolated
+        all_extrapolated.append(extrapolated)
 
+    print all_extrapolated
+    np.save('all_extrapolated', all_extrapolated)
 
 if __name__ == "__main__":
     if args.mode == 'train':
