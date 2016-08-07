@@ -14,6 +14,13 @@ from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
+_saver = None
+_sess = None
+_input_tensor = None
+_pred = None
+_gt = None
+
+
 np.random.seed(1234)
 tf.set_random_seed(0)
 
@@ -45,7 +52,7 @@ else:
 if args.model_path:
     model_path = args.model_path
 else:
-    model_path = 'trial/checkpoints/model.ckpt-600'
+    model_path = 'good_checkpoints/model.ckpt-50'
 
 def get_loss(pred, gt):
     return tf.div(tf.reduce_mean(tf.square(tf.sub(gt, pred))),
@@ -144,62 +151,93 @@ def evaluate(print_grid=False):
 
 
 
+def init_model():
+    global _saver
+    global _sess
+    global _input_tensor
+    global _pred
+    global _gt
+
+
+    num_timesteps = 25
+    num_feats = 3
+    batch_size = 1
+
+    _input_tensor, _pred, _gt = models.import_model(num_timesteps,
+                                                 num_feats,
+                                                 batch_size)
+    _saver = tf.train.Saver()
+    _sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    _saver.restore(_sess, model_path)
+
+
+def close_session():
+    global _sess
+    _sess.close()
+
 def extrapolate(history_file, etc_dict=None):
+    global _saver
+    global _sess
+    global _input_tensor
+    global _pred
+    global _gt
     # etc_dict is a dict mapping from province to # of new ETCs there
-    with tf.device('/gpu:0'):  # run on specific device
-        input_tensor, pred, gt = models.import_model(num_timesteps,
-                                                     num_feats,
-                                                     batch_size)
 
     # dataset should be [num_provinces x (num_timesteps, num_feats)]
     data, provinces = np.load(history_file)
 
-    saver = tf.train.Saver()
+    all_extrapolated = defaultdict(list)
+    all_new_values = defaultdict(list)
+    for province, province_data in zip(provinces, data):
+        # for one province
+        # get lat and lon
+        lat, lon = province_data[0, 1:]
+        extrapolated = []
+        new_values = []
+        old_value = province_data[-1, 0]
+        for t in range(num_extrapolate):
+            pred_value = _sess.run([_pred],
+                                  {_input_tensor: province_data})[0][0][0]
+            if pred_value < 0:
+                pred_value = 0
+            extrapolated.append(pred_value)
 
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-        saver.restore(sess, model_path)
+            new_value = pred_value
+            if etc_dict and province in etc_dict:
+                new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
+                # new_value *= (1 - etc_dict[province] * 0.1)
+            old_value = pred_value
+            new_values.append(new_value)
+            new_sample = np.array([new_value, lat, lon])
 
-        all_extrapolated = defaultdict(list)
-        all_new_values = defaultdict(list)
-        for province, province_data in zip(provinces, data):
-            # for one province
-            # get lat and lon
-            lat, lon = province_data[0, 1:]
-            extrapolated = []
-            new_values = []
-            old_value = province_data[-1, 0]
-            for t in range(num_extrapolate):
-                pred_value = sess.run([pred],
-                                      {input_tensor: province_data})[0][0][0]
-                if pred_value < 0:
-                    pred_value = 0
-                extrapolated.append(pred_value)
+            new_sample = np.reshape(new_sample, (1, -1))
+            province_data = province_data[1:, :]
+            province_data = np.concatenate((province_data, new_sample), axis=0)
+            # make example with [pred_value, lat, lon]
+            # remove first element in input batch and add extrapolated
+        all_extrapolated[province] = extrapolated
+        all_new_values[province] = new_values
 
-                new_value = pred_value
-                if etc_dict and province in etc_dict:
-                    new_value = old_value + ((pred_value - old_value) * (1/(etc_dict[province] + 3)))
-                    # new_value *= (1 - etc_dict[province] * 0.1)
-                old_value = pred_value
-                new_values.append(new_value)
-                new_sample = np.array([new_value, lat, lon])
-
-                new_sample = np.reshape(new_sample, (1, -1))
-                province_data = province_data[1:, :]
-                province_data = np.concatenate((province_data, new_sample), axis=0)
-                # make example with [pred_value, lat, lon]
-                # remove first element in input batch and add extrapolated
-            all_extrapolated[province] = extrapolated
-            all_new_values[province] = new_values
-
-
-    for i, province in enumerate(provinces):
-        print province
-        print data[i]
-        print all_extrapolated[province]
-        print all_new_values[province]
+    #
+    # for i, province in enumerate(provinces):
+    #     print province
+    #     print data[i]
+    #     print all_extrapolated[province]
+    #     print all_new_values[province]
     # np.save('all_extrapolated', all_extrapolated)
 
     return all_extrapolated
+
+
+test_dict = {
+    "macenta": 2,
+    "coyah": 1,
+    "kerouane": 1
+}
+
+def test_those_globals():
+    init_model()
+    print extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)["macenta"]
 
 
 if __name__ == "__main__":
@@ -210,9 +248,5 @@ if __name__ == "__main__":
     elif args.mode == 'extrapolate':
         extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA)
     elif args.mode == 'etc_user':
-        etc_dict = {
-            "macenta"   : 2,
-            "coyah" : 1,
-            "kerouane" : 1
-        }
-        extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, etc_dict)
+        test_those_globals()
+        # extrapolate(PREPROCESSED_GUINEA_DATA_EXTRA, test_dict)
