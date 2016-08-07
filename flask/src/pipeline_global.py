@@ -14,7 +14,7 @@ from collections import defaultdict
 from constants import *
 from progressbar import ETA, Bar, Percentage, ProgressBar
 from sklearn.metrics import precision_recall_curve, average_precision_score
-from preprocessing import get_lat_lon_map
+# from preprocessing import get_lat_lon_map
 
 _saver = None
 _sess = None
