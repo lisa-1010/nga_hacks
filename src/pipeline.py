@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser(description='Epidemic Response System')
 parser.add_argument('-wd', '--working_directory', help='directory for storing logs')
 parser.add_argument('-sf', '--save_frequency', help='Number of epochs before saving')
 parser.add_argument('--model_path', help='Stored model path')
-parser.add_argument('mode', choices=('train', 'eval'), help='train or eval')
+parser.add_argument('mode', choices=('train', 'eval', 'extrapolate'), help='train or eval')
 args = parser.parse_args()
 
 # Training Constants
@@ -28,6 +28,7 @@ batch_size = 1
 num_timesteps = 25
 num_feats = 3
 max_epoch = 601
+num_extrapolate = 20
 dataset_size = 3069
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
 
@@ -134,12 +135,44 @@ def evaluate(print_grid=False):
         for i in range(len(all_pred)):
             if all_pred[i] == all_gt[i]: num_align += 1
             rmse.append(np.sqrt(np.power((all_pred[i] - all_gt[i]), 2)))
+
         print "Accuracy:", float(num_align)/len(all_pred)
         print "Avg. RMSE", np.mean(rmse)
         print "Variance RMSE", np.var(rmse)
+
+def extrapolate():
+    with tf.device('/gpu:0'): # run on specific device
+        input_tensor, pred, gt = models.import_model(num_timesteps, 
+                                                     num_feats,
+                                                     batch_size)
+
+    dataset = data_loader.read_datasets(PREPROCESSED_DATA, dataset_type='test')
+
+    saver = tf.train.Saver() 
+    
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+        saver.restore(sess, model_path)
+
+        all_extrapolated = []
+        for i in range(updates_per_epoch):
+            # for one province
+            input_batch, gt_batch = dataset.next_batch(batch_size)
+            # get lat and lon
+            extrapolated = []
+            for j in range(num_extrapolate):
+                import pdb; pdb.set_trace()
+                pred_value = sess.run([pred], 
+                                      {input_tensor : input_batch,
+                                       gt : [gt_batch]})
+                extrapolated.append(pred_value)
+                # make example with [pred_value, lat, lon]
+                # remove first element in input batch and add extrapolated
+
 
 if __name__ == "__main__":
     if args.mode == 'train':
         train()
     elif args.mode == 'eval':
         evaluate(print_grid=False)
+    elif args.mode == 'extrapolate':
+        extrapolate()
