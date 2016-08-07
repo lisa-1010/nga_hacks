@@ -2,6 +2,8 @@ from flask import render_template
 
 from app import app
 
+from src import pipeline_global as Pipeline
+Pipeline.init_model()
 
 @app.route('/', methods=['GET'])
 def index():
