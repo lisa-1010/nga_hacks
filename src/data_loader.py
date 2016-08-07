@@ -4,10 +4,9 @@ import numpy as np
 import scipy.io as sio
 
 class DataSet(object):
-    def __init__(self, X, y, mask):
+    def __init__(self, X, y):
         self._data = X
         self._labels = y
-        self._mask = mask
         self._epochs_completed = 0
         self._index_in_epoch = 0
         self._num_examples = self._data.shape[0]
@@ -40,17 +39,17 @@ class DataSet(object):
             self._index_in_epoch = batch_size
             assert batch_size <= self._num_examples
         end = self._index_in_epoch
-        return self._data[start:end][0], self._labels[start:end][0], self._mask
+        return self._data[start:end][0], self._labels[start:end][0]
 
 def read_datasets(data_path='', dataset_type='train'):
     print('loading data...')
     
     # load data
-    X_train, X_test, y_train, y_test, mask = np.load(data_path)
+    X_train, X_test, y_train, y_test = np.load(data_path)
 
     if dataset_type == 'train':
         print('Training data shape:', X_train.shape)
-        return DataSet(X_train, y_train, mask)
+        return DataSet(X_train, y_train)
     else:
         print('Test data shape:', X_test.shape)
-        return DataSet(X_test, y_test, mask)
+        return DataSet(X_test, y_test)
