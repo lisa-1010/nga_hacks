@@ -15,14 +15,23 @@
 
 RAW_DATA_PATH = "../data/data-ebola-public.csv"
 CLEAN_DATA_PATH = "../data/data-ebola-public-clean.csv"
+
 GUINEA_DATA_PATH = "../data/guinea.csv"
 LIBERIA_DATA_PATH = "../data/liberia.csv"
 SIERRA_DATA_PATH = "../data/sierra.csv"
 ALL_THREE_COUNTRIES_DATA_PATH = "../data/all_three_countries.csv"
+
+CLEAN_GUINEA_DATA_PATH = "../data/guinea_clean.csv"
+CLEAN_LIBERIA_DATA_PATH = "../data/liberia_clean.csv"
+CLEAN_SIERRA_DATA_PATH = "../data/sierra_clean.csv"
+CLEAN_ALL_THREE_COUNTRIES_DATA_PATH = "../data/all_three_countries_clean.csv"
+
 LAT_LON_PROVINCES = "../data/lat-lon-provinces.csv"
 
-PREPROCESSED_DATA = "../data/preprocessed.npy"
+PREPROCESSED_GUINEA_DATA = "../data/preprocessed/guinea_25.csv"
 
-COUNTRIES = ["guinea", "liberia", "sierra leone"]
+COUNTRIES = ["guinea", "liberia", "sierra", "all_three_countries"]
 
-COUNTRIES_DATA_PATHS = [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH]
+COUNTRIES_DATA_PATHS = [GUINEA_DATA_PATH, LIBERIA_DATA_PATH, SIERRA_DATA_PATH, ALL_THREE_COUNTRIES_DATA_PATH]
+COUNTRIES_CLEAN_DATA_PATHS = [CLEAN_GUINEA_DATA_PATH, CLEAN_LIBERIA_DATA_PATH, CLEAN_SIERRA_DATA_PATH, CLEAN_ALL_THREE_COUNTRIES_DATA_PATH]
+
