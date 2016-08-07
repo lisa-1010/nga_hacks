@@ -1,7 +1,9 @@
 import csv
 import numpy as np
 from collections import Counter
-
+import pprint
+import copy
+import re
 
 from constants import *
 
@@ -45,12 +47,13 @@ def find_case_types(csv_file):
 
 def count_num_provinces(csv_file):
     num_regions = 0
-    provinces = set()
+    # provinces = set()
+    provinces = Counter()
     with open(csv_file, "rb") as f:
         rows = csv.reader(f, delimiter=',')
         for row in rows:
-            provinces.add(row[1])
-    print "number of provinces: {}".format(len(provinces))
+            provinces[row[1]] += 1
+    print "number of provinces: {}".format(len(provinces.keys()))
     return provinces
 
 
@@ -75,6 +78,44 @@ def merge_three_countries():
             writer.writerow(row)
 
 
+def remove_invalid_provinces(country_file, provinces_file):
+    valid_provinces = set()
+    with open(provinces_file, "rb") as f:
+        rows = csv.reader(f, delimiter=',')
+        for row in rows:
+            valid_provinces.add(row[0])
+
+    print valid_provinces
+    new_rows = []
+
+    excluded_provinces = set()
+    with open(country_file, "rb") as f:
+        rows = csv.reader(f, delimiter=',')
+        for row in rows:
+            row[1] = row[1].strip()
+            row[1] = re.m
+            if row[1] == 'for\xc3\xa9cariah':
+                row[1] = 'forecariah'
+            elif row[1] == 'lab\xc3\xa9':
+                row[1] = 'labe'
+            elif row[1] == 'tougu\xc3\xa9':
+                row[1] = 'tougue'
+            elif row[1] == 'port':
+                row[1] = 'port loko'
+
+            if row[1] in valid_provinces:
+                new_rows.append(row)
+            else:
+                excluded_provinces.add(row[1])
+                # print 'exluding province {}'.format(row[1])
+
+    print excluded_provinces
+    # with open(country_file, "wb") as f:
+    #     writer = csv.writer(f, delimiter=',')
+    #     for row in new_rows:
+    #         writer.writerow(row)
+
+
 if __name__ == "__main__":
     # lower_entire_csv(RAW_DATA_PATH)
     # find_case_types()
@@ -88,4 +129,15 @@ if __name__ == "__main__":
     #     find_case_types(country_file)
 
     # merge_three_countries()
-    lower_entire_csv(LAT_LON_PROVINCES)
+    # lower_entire_csv(LAT_LON_PROVINCES)
+    pp = pprint.PrettyPrinter()
+    # pp.pprint( count_num_provinces(ALL_THREE_COUNTRIES_DATA_PATH))
+
+
+
+    for country, country_file in zip(COUNTRIES, COUNTRIES_DATA_PATHS):
+        print country
+        remove_invalid_provinces(country_file, LAT_LON_PROVINCES)
+
+
+
