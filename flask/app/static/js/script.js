@@ -1,4 +1,4 @@
-var colors = ['#ffffe0','#ffd4ad','#ffa77a','#ff7246','#ff0000'];
+var colors = ['#ffffff', '#ffffe0','#ffd4ad','#ffa77a','#ff7246','#ff0000'];
 
 $(document).ready(function() {
   $('svg').find('path').each(function(index, province) {
@@ -9,4 +9,14 @@ $(document).ready(function() {
       $(province).attr('index', (index + 1) % colors.length);
     });
   });
+
+  $('#gradient').html(getGradientHTML());
 });
+
+function getGradientHTML() {
+  var html = '';
+  for (var i = 0; i < colors.length; i++) {
+    html += '<div style="width: 16.6667%; height: 100%; background: ' + colors[i] + ';"></div>';
+  }
+  return html;
+}
