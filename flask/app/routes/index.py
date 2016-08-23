@@ -13,7 +13,7 @@ def index():
 def tmp():
   return render_template('tmp.html')
 
-@app.route('/api/charts', methods=['GET'])
+@app.route('/api/charts', methods=['POST'])
 def charts():
   result = dict(Pipeline.extrapolate(Pipeline.PREPROCESSED_GUINEA_DATA_EXTRA, request.json))
   for key in result:
